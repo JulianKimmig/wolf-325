@@ -27,6 +27,7 @@
     },
     "error": {
       "cannot_connect": "Unable to connect to the appliance.",
+      "invalid_host": "Enter a non-empty host name or IP address.",
       "invalid_identity": "The appliance identity could not be verified.",
       "unknown": "Unexpected error."
     },

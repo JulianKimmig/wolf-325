@@ -68,7 +68,7 @@ def test_manifest_and_custom_translation_are_complete() -> None:
         "issue_tracker": "https://github.com/JulianKimmig/wolf-325/issues",
         "name": "WOLF CWL-2",
         "requirements": ["wolf-325==0.1.0"],
-        "version": "0.1.0",
+        "version": "0.1.1",
     }
 
     translations = _read_json(COMPONENT_ROOT / "translations" / "en.json")

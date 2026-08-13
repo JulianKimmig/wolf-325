@@ -11,6 +11,7 @@ from homeassistant.config_entries import (
     OptionsFlow,
     OptionsFlowWithReload,
 )
+from homeassistant.const import CONF_HOST
 from homeassistant.core import callback
 
 from .config_schema import connection_schema, intervals_are_valid, options_schema
@@ -66,29 +67,34 @@ class WolfCWL2ConfigFlow(ConfigFlow, domain=DOMAIN):
         """
         errors: dict[str, str] = {}
         if user_input is not None:
-            try:
-                identity = await async_probe_device(user_input)
-            except CannotConnect:
-                errors["base"] = "cannot_connect"
-            except InvalidIdentity:
-                errors["base"] = "invalid_identity"
+            normalized_input = _normalize_connection(user_input)
+            if normalized_input is None:
+                errors[CONF_HOST] = "invalid_host"
             else:
-                await self.async_set_unique_id(identity.serial_number)
-                title = f"{INTEGRATION_NAME} {identity.serial_number}"
-                if step_id == "user":
-                    self._abort_if_unique_id_configured()
-                    return self.async_create_entry(
+                user_input = normalized_input
+                try:
+                    identity = await async_probe_device(user_input)
+                except CannotConnect:
+                    errors["base"] = "cannot_connect"
+                except InvalidIdentity:
+                    errors["base"] = "invalid_identity"
+                else:
+                    await self.async_set_unique_id(identity.serial_number)
+                    title = f"{INTEGRATION_NAME} {identity.serial_number}"
+                    if step_id == "user":
+                        self._abort_if_unique_id_configured()
+                        return self.async_create_entry(
+                            title=title,
+                            data=user_input,
+                            options=dict(DEFAULT_OPTIONS),
+                        )
+                    entry = self._get_reconfigure_entry()
+                    self._abort_if_unique_id_mismatch(reason="reconfigure_mismatch")
+                    return self.async_update_reload_and_abort(
+                        entry,
                         title=title,
                         data=user_input,
-                        options=dict(DEFAULT_OPTIONS),
                     )
-                entry = self._get_reconfigure_entry()
-                self._abort_if_unique_id_mismatch(reason="reconfigure_mismatch")
-                return self.async_update_reload_and_abort(
-                    entry,
-                    title=title,
-                    data=user_input,
-                )
         defaults = (
             self._get_reconfigure_entry().data
             if step_id == "reconfigure"
@@ -139,3 +145,18 @@ class WolfCWL2OptionsFlow(OptionsFlowWithReload):
             data_schema=options_schema(defaults),
             errors=errors,
         )
+
+
+def _normalize_connection(user_input: dict[str, Any]) -> dict[str, Any] | None:
+    """Strip the endpoint host after frontend-safe schema validation.
+
+    Args:
+        user_input: Schema-normalized connection form values.
+
+    Returns:
+        A copied mapping with a stripped host, or ``None`` for a blank host.
+    """
+    host = str(user_input[CONF_HOST]).strip()
+    if not host:
+        return None
+    return {**user_input, CONF_HOST: host}
