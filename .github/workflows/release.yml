@@ -1,0 +1,37 @@
+name: Publish client
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    name: Qualify and publish wolf-325
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/wolf-325
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.7.21"
+          enable-cache: true
+      - name: Install locked dependencies
+        run: uv sync --locked --all-extras --dev
+      - name: Match tag to package version
+        run: test "${GITHUB_REF_NAME}" = "v$(uv version --short)"
+      - name: Test client
+        run: uv run pytest
+      - name: Test Home Assistant integration
+        run: uv run pytest -c tests/components/wolf_cwl2/pytest.toml tests/components/wolf_cwl2
+      - name: Build distributions
+        run: uv build
+      - name: Publish with PyPI Trusted Publishing
+        run: uv publish --trusted-publishing always
