@@ -6,14 +6,14 @@ import asyncio
 import copy
 import logging
 from collections.abc import AsyncIterator, Callable, Mapping, Sequence
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from pymodbus.client import AsyncModbusTcpClient
 
-from .catalogue import REGISTERS, resolve_register_name
+from .catalogue import REGISTERS
 from .config import ConfigStore
+from .derived_values import DerivedValueMixin, VIRTUAL_VALUES
 from .errors import CommunicationError
 from .polling import PollingMixin
 from .profile_engine import ProfileRepository
@@ -28,12 +28,15 @@ from .settings import SettingsMixin
 from .state import UpdateCallback, ValueState
 from .transport import TransportMixin
 from .types import JSONScalar, JSONValue, PollTier
+from .value_access import ValueAccessMixin
 from .writes import WriteMixin
 
 LOGGER = logging.getLogger("wolf_325")
 class WolfCWL2(
     SettingsMixin,
     WriteMixin,
+    ValueAccessMixin,
+    DerivedValueMixin,
     PollingMixin,
     TransportMixin,
 ):
@@ -62,7 +65,7 @@ class WolfCWL2(
         self._state_write_lock = asyncio.Lock()
         self._values = {
             key: ValueState(key=key, unit=register.unit)
-            for key, register in REGISTERS.items()
+            for key, register in {**REGISTERS, **VIRTUAL_VALUES}.items()
         }
         self._running = False
         self._read_only = False
@@ -195,33 +198,6 @@ class WolfCWL2(
             return {}
         return copy.deepcopy(self.config.get("desired", {}))
 
-    def get_value(self, name: str, default: Any = None) -> Any:
-        """Return a cached value or the supplied default when unavailable."""
-        state = self._values[resolve_register_name(name)]
-        return state.value if state.available else default
-
-    def get_state(self, name: str) -> dict[str, Any]:
-        """Return an isolated public state record for one named value."""
-        return copy.deepcopy(self._values[resolve_register_name(name)].as_dict())
-
-    def snapshot(self, *, available_only: bool = False) -> dict[str, Any]:
-        """Return a timestamped JSON-compatible snapshot of controller state."""
-        values = {
-            key: state.as_dict()
-            for key, state in sorted(self._values.items())
-            if not available_only or state.available
-        }
-        return {
-            "connected": self.connected,
-            "connection_generation": self._connection_generation,
-            "last_connection_error": self._last_connection_error,
-            "last_poll_at": copy.deepcopy(self._last_poll_at),
-            "last_profile": self.config.get("last_profile") if self.config else None,
-            "desired": self.desired,
-            "values": values,
-            "generated_at": datetime.now(UTC).isoformat(),
-        }
-
     def subscribe(self, callback: UpdateCallback) -> Callable[[], None]:
         """Register a state callback and return its unsubscribe function."""
         self._callbacks.add(callback)
@@ -251,12 +227,6 @@ class WolfCWL2(
         for tier in tiers:
             if tier != "never":
                 await self._poll_tier(tier)
-
-    async def refresh(self, name: str) -> JSONValue | None:
-        """Read one named value immediately and return its decoded value."""
-        key = resolve_register_name(name)
-        await self._read_definition(REGISTERS[key])
-        return self._values[key].value
 
     async def preview_profile_changes(self) -> ProfileChanges:
         """Return the desired-state delta from the last loaded profile."""

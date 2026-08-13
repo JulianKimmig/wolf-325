@@ -200,7 +200,8 @@ class PollingMixin:
         state.updated_at = now
         if changed:
             await self._emit_update(state)
-        return changed
+        derived_changed = await self._update_dependent_values(register.key, now)
+        return changed or derived_changed
 
     async def _mark_block_unavailable(self, block: ReadBlock, error: str) -> None:
         """Mark all definitions intersecting a failed block unavailable."""
@@ -215,6 +216,7 @@ class PollingMixin:
                 state.updated_at = now
                 if changed:
                     await self._emit_update(state)
+                await self._update_dependent_values(register.key, now)
 
     async def _emit_update(self, state: ValueState) -> None:
         """Deliver an isolated state change to queues and sync/async callbacks."""

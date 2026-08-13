@@ -58,7 +58,7 @@ async def test_complete_sensor_surface_has_stable_registry_and_device_identity(
     expected = {
         key: spec for key, spec in ENTITY_SPECS.items() if spec.platform == "sensor"
     }
-    assert len(entries) == len(expected) == 83
+    assert len(entries) == len(expected) == 85
     assert {item.unique_id for item in entries} == {
         f"123456789012_{key}" for key in expected
     }
@@ -91,6 +91,10 @@ async def test_sensor_state_is_confirmed_recorder_safe_and_unknown_enum_visible(
     """
     fake_gateway.input_words[4020] = 99
     fake_gateway.input_words[4032] = 171
+    fake_gateway.input_words[4036] = 265
+    fake_gateway.input_words[4037] = 27
+    fake_gateway.input_words[4046] = 291
+    fake_gateway.input_words[4047] = 33
     entry = _entry()
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
@@ -103,17 +107,35 @@ async def test_sensor_state_is_confirmed_recorder_safe_and_unknown_enum_visible(
     function_id = registry.async_get_entity_id(
         "sensor", DOMAIN, "123456789012_active_function"
     )
+    supply_dew_point_id = registry.async_get_entity_id(
+        "sensor", DOMAIN, "123456789012_supply_dew_point_c"
+    )
+    exhaust_dew_point_id = registry.async_get_entity_id(
+        "sensor", DOMAIN, "123456789012_exhaust_dew_point_c"
+    )
     assert airflow_id is not None
     assert function_id is not None
+    assert supply_dew_point_id is not None
+    assert exhaust_dew_point_id is not None
     airflow = hass.states.get(airflow_id)
     function = hass.states.get(function_id)
+    supply_dew_point = hass.states.get(supply_dew_point_id)
+    exhaust_dew_point = hass.states.get(exhaust_dew_point_id)
     assert airflow is not None
     assert function is not None
+    assert supply_dew_point is not None
+    assert exhaust_dew_point is not None
     assert airflow.state == "171"
     assert airflow.attributes["unit_of_measurement"] == "m³/h"
     assert airflow.attributes["device_class"] == "volume_flow_rate"
     assert airflow.attributes["state_class"] == "measurement"
     assert function.state == "unknown_99"
+    assert supply_dew_point.state == "6.0"
+    assert exhaust_dew_point.state == "11.2"
+    for dew_point in (supply_dew_point, exhaust_dew_point):
+        assert dew_point.attributes["unit_of_measurement"] == "°C"
+        assert dew_point.attributes["device_class"] == "temperature"
+        assert dew_point.attributes["state_class"] == "measurement"
     forbidden = {"raw", "updated_at", "error", "desired", "last_profile"}
     assert forbidden.isdisjoint(airflow.attributes)
     assert forbidden.isdisjoint(function.attributes)

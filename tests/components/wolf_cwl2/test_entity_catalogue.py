@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from wolf_325 import REGISTERS
+from wolf_325.derived_values import VIRTUAL_VALUES
 
 from custom_components.wolf_cwl2.entity_catalogue import (
     ACTION_ONLY_KEYS,
@@ -11,14 +12,14 @@ from custom_components.wolf_cwl2.entity_catalogue import (
 )
 
 
-def test_overlay_classifies_every_register_exactly_once() -> None:
-    """Require one HA disposition for every canonical catalogue key.
+def test_overlay_classifies_every_value_exactly_once() -> None:
+    """Require one HA disposition for every physical and virtual value key.
 
     Returns:
         None.
     """
-    assert len(ENTITY_SPECS) == 154
-    assert set(ENTITY_SPECS) == set(REGISTERS)
+    assert len(ENTITY_SPECS) == 156
+    assert set(ENTITY_SPECS) == set(REGISTERS) | set(VIRTUAL_VALUES)
     assert all(key == spec.key for key, spec in ENTITY_SPECS.items())
     assert all(spec.translation_key == spec.key for spec in ENTITY_SPECS.values())
 
@@ -70,6 +71,22 @@ def test_guarded_and_date_time_dispositions_match_product_contract() -> None:
         spec = ENTITY_SPECS[key]
         assert spec.platform == "sensor"
         assert spec.entity_category == "diagnostic"
+
+
+def test_virtual_dew_points_are_default_temperature_sensors() -> None:
+    """Expose derived dew points as ordinary measured temperature entities.
+
+    Returns:
+        None.
+    """
+    for key in ("supply_dew_point_c", "exhaust_dew_point_c"):
+        spec = ENTITY_SPECS[key]
+        assert spec.platform == "sensor"
+        assert spec.enabled_default is True
+        assert spec.device_class == "temperature"
+        assert spec.state_class == "measurement"
+        assert spec.native_unit == "°C"
+        assert spec.suggested_precision == 1
 
 
 def test_curated_defaults_are_explicit_and_recorder_safe() -> None:
