@@ -11,7 +11,7 @@ htmlcov/
 
 # Virtual environments
 .venv
-
+AGENTS.md
 # Local controller configuration and live device state
 wolf_cwl2_config.json
 wolf_state.json
