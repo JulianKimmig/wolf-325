@@ -22,9 +22,10 @@ def test_unstarted_controller_exposes_explicit_empty_state(config_path: Path) ->
     """Every known value exists in cache but is unavailable before polling."""
     instance = WolfCWL2(config_path)
     snapshot = instance.snapshot()
-    assert len(snapshot["values"]) == 154
+    assert len(snapshot["values"]) == 156
     assert snapshot["connected"] is False
     assert snapshot["values"]["supply_temperature_c"]["available"] is False
+    assert snapshot["values"]["supply_dew_point_c"]["available"] is False
     with pytest.raises(RegisterError):
         instance.get_value("does_not_exist")
 

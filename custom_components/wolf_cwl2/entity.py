@@ -7,6 +7,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from wolf_325 import REGISTERS
+from wolf_325.derived_values import VIRTUAL_VALUES
 
 from .const import DOMAIN
 from .coordinator import WolfCWL2Coordinator
@@ -58,12 +59,12 @@ class WolfCWL2Entity(CoordinatorEntity[WolfCWL2Coordinator]):
         Returns:
             ``True`` only while the confirmed cached value is usable.
         """
-        register = REGISTERS[self.spec.key]
+        definition = REGISTERS.get(self.spec.key) or VIRTUAL_VALUES[self.spec.key]
         state = self.coordinator.controller.get_state(self.spec.key)
         return (
             super().available
             and self.coordinator.controller.connected
-            and register.poll != "never"
-            and self.coordinator.tier_is_fresh(register.poll)
+            and definition.poll != "never"
+            and self.coordinator.tier_is_fresh(definition.poll)
             and bool(state["available"])
         )

@@ -7,6 +7,7 @@ from types import MappingProxyType
 from typing import Final, Literal
 
 from wolf_325 import REGISTERS, RegisterDef
+from wolf_325.derived_values import VIRTUAL_VALUES, VirtualValueDef
 
 EntityPlatform = Literal["action", "number", "select", "sensor", "switch"]
 EntityCategoryName = Literal["config", "diagnostic"]
@@ -44,12 +45,14 @@ DEFAULT_ENABLED_KEYS: Final = frozenset(
         "supply_fan_speed_rpm",
         "supply_temperature_c",
         "supply_relative_humidity_pct",
+        "supply_dew_point_c",
         "exhaust_fan_status",
         "exhaust_airflow_setpoint_m3h",
         "exhaust_airflow_actual_m3h",
         "exhaust_fan_speed_rpm",
         "exhaust_temperature_c",
         "exhaust_relative_humidity_pct",
+        "exhaust_dew_point_c",
         "bypass_status",
         "preheater_status",
         "preheater_capacity_pct",
@@ -197,8 +200,36 @@ def _build_spec(register: RegisterDef) -> EntitySpec:
     )
 
 
+def _build_virtual_spec(definition: VirtualValueDef) -> EntitySpec:
+    """Build Home Assistant metadata for one calculated read-only value.
+
+    Args:
+        definition: Canonical virtual value definition.
+
+    Returns:
+        Immutable measured-temperature sensor description.
+    """
+    return EntitySpec(
+        key=definition.key,
+        platform="sensor",
+        translation_key=definition.key,
+        name=definition.description,
+        enabled_default=definition.key in DEFAULT_ENABLED_KEYS,
+        device_class="temperature",
+        state_class="measurement",
+        native_unit=definition.unit,
+        suggested_precision=1,
+    )
+
+
 ENTITY_SPECS: Final = MappingProxyType(
-    {key: _build_spec(register) for key, register in REGISTERS.items()}
+    {
+        **{key: _build_spec(register) for key, register in REGISTERS.items()},
+        **{
+            key: _build_virtual_spec(definition)
+            for key, definition in VIRTUAL_VALUES.items()
+        },
+    }
 )
 
 __all__ = [

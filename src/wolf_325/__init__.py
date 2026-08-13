@@ -15,6 +15,7 @@ from .config import (
     read_json,
 )
 from .controller import WolfCWL2
+from .derived_values import VIRTUAL_VALUES, VirtualValueDef, resolve_value_name
 from .errors import (
     BulkWriteError,
     CommunicationError,
@@ -65,6 +66,8 @@ __all__ = [
     "SavedProfile",
     "ValidationError",
     "ValueState",
+    "VIRTUAL_VALUES",
+    "VirtualValueDef",
     "VerificationError",
     "WolfCWL2",
     "WolfError",
@@ -74,4 +77,5 @@ __all__ = [
     "normalize_settings",
     "read_json",
     "resolve_register_name",
+    "resolve_value_name",
 ]

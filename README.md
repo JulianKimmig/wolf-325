@@ -266,6 +266,7 @@ Start with read-only commands:
 ```bash
 uv run wolf-cwl2 --config wolf_cwl2_config.json snapshot --available-only
 uv run wolf-cwl2 --config wolf_cwl2_config.json get supply_temperature_c
+uv run wolf-cwl2 --config wolf_cwl2_config.json get supply_dew_point_c
 uv run wolf-cwl2 \
   --config wolf_cwl2_config.json \
   run --read-only --print-updates
@@ -312,6 +313,7 @@ await controller.poll_once()
 await controller.refresh("filter_status")
 controller.get_value("supply_temperature_c")
 controller.get_state("supply_temperature_c")
+controller.get_value("supply_dew_point_c")
 controller.snapshot(available_only=True)
 ```
 

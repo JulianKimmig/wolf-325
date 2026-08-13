@@ -77,7 +77,7 @@ async def test_all_safe_controls_register_on_native_platforms(
         for key, spec in ENTITY_SPECS.items()
         if spec.platform != "action"
     }
-    assert len(entries) == 155
+    assert len(entries) == 157
     actual = {item.unique_id: item.domain for item in entries}
     assert {key: actual[key] for key in expected} == expected
     assert {
