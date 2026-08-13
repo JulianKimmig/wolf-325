@@ -65,6 +65,20 @@ def test_signed_temperature_scaling(raw: int, expected: float) -> None:
     assert REGISTERS["supply_temperature_c"].decode([raw]) == expected
 
 
+@pytest.mark.parametrize(
+    ("key", "raw", "expected"),
+    [
+        ("supply_relative_humidity_pct", 27, 27),
+        ("exhaust_relative_humidity_pct", 33, 33),
+    ],
+)
+def test_fan_humidity_uses_whole_percent_values(
+    key: str, raw: int, expected: int
+) -> None:
+    """Decode fan humidity words as the whole percentages shown by the appliance."""
+    assert REGISTERS[key].decode([raw]) == expected
+
+
 def test_version_serial_counter_and_raw_word_codecs() -> None:
     """Multi-word identity and counter codecs preserve their documented format."""
     assert REGISTERS["base_software_version"].decode(
