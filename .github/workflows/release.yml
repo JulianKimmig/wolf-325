@@ -31,6 +31,10 @@ jobs:
         run: uv run pytest
       - name: Test Home Assistant integration
         run: uv run pytest -c tests/components/wolf_cwl2/pytest.toml tests/components/wolf_cwl2
+      - name: Test Home Assistant floor PyModbus compatibility
+        run: uv run --isolated --all-extras --with pymodbus==3.11.2 pytest tests/test_transport.py tests/test_transport_polling.py tests/test_controller.py tests/test_runtime_edges.py tests/test_setting_relations.py
+      - name: Test current Home Assistant PyModbus compatibility
+        run: uv run --isolated --all-extras --with pymodbus==3.13.1 pytest tests/test_transport.py tests/test_transport_polling.py tests/test_controller.py tests/test_runtime_edges.py tests/test_setting_relations.py
       - name: Build distributions
         run: uv build
       - name: Publish with PyPI Trusted Publishing

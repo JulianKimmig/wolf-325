@@ -8,6 +8,8 @@ import importlib.metadata
 import threading
 from pathlib import Path
 
+from packaging.requirements import Requirement
+
 from wolf_325 import (
     DEFAULT_CONFIG,
     MemoryProfileRepository,
@@ -30,7 +32,23 @@ def test_textual_is_only_a_declared_tui_extra() -> None:
 
     assert textual
     assert all("extra == 'tui'" in item for item in textual)
-    assert pymodbus == ["pymodbus==3.14.0"]
+    assert pymodbus == ["pymodbus<3.15,>=3.11.2"]
+
+
+def test_transport_dependency_accepts_supported_home_assistant_constraints() -> None:
+    """Intersect with qualified Home Assistant pins but reject unknown API minors.
+
+    Returns:
+        None.
+    """
+    requirements = importlib.metadata.requires("wolf-325") or []
+    transport = Requirement(
+        next(item for item in requirements if item.lower().startswith("pymodbus"))
+    )
+
+    for compatible in ("3.11.2", "3.13.1", "3.14.0"):
+        assert compatible in transport.specifier
+    assert "3.15.0" not in transport.specifier
 
 
 async def test_runtime_store_merges_and_canonicalizes_without_a_file() -> None:

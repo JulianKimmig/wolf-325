@@ -86,6 +86,7 @@ def test_wheel_declares_and_contains_mit_license(tmp_path: Path) -> None:
     assert "License-Expression: MIT\n" in metadata
     assert "License-File: LICENSE\n" in metadata
     assert "Author: Julian Kimmig\n" in metadata
+    assert "Requires-Dist: pymodbus<3.15,>=3.11.2\n" in metadata
     assert (
         "Project-URL: Repository, https://github.com/JulianKimmig/wolf-325\n"
         in metadata

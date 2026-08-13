@@ -77,6 +77,18 @@ def test_release_workflow_qualifies_artifacts_before_publication() -> None:
             "uv run pytest -c tests/components/wolf_cwl2/pytest.toml "
             "tests/components/wolf_cwl2"
         ),
+        (
+            "uv run --isolated --all-extras --with pymodbus==3.11.2 pytest "
+            "tests/test_transport.py tests/test_transport_polling.py "
+            "tests/test_controller.py tests/test_runtime_edges.py "
+            "tests/test_setting_relations.py"
+        ),
+        (
+            "uv run --isolated --all-extras --with pymodbus==3.13.1 pytest "
+            "tests/test_transport.py tests/test_transport_polling.py "
+            "tests/test_controller.py tests/test_runtime_edges.py "
+            "tests/test_setting_relations.py"
+        ),
         "uv build",
         "uv publish --trusted-publishing always",
     ]
