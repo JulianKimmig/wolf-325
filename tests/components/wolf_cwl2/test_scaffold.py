@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import struct
+import tomllib
 from typing import Any
 
 import pytest
@@ -67,7 +68,7 @@ def test_manifest_and_custom_translation_are_complete() -> None:
         "iot_class": "local_polling",
         "issue_tracker": "https://github.com/JulianKimmig/wolf-325/issues",
         "name": "WOLF CWL-2",
-        "requirements": ["wolf-325==0.1.1"],
+        "requirements": ["wolf-325==0.1.2"],
         "version": "0.1.2",
     }
 
@@ -75,6 +76,22 @@ def test_manifest_and_custom_translation_are_complete() -> None:
     assert translations["title"] == "WOLF CWL-2"
     assert "config" in translations
     assert not (COMPONENT_ROOT / "strings.json").exists()
+
+
+def test_manifest_versions_match_main_package() -> None:
+    """Keep the HACS release and exact client dependency synchronized.
+
+    Returns:
+        None.
+    """
+    project = tomllib.loads(
+        (REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    )
+    project_version = project["project"]["version"]
+    manifest = _read_json(COMPONENT_ROOT / "manifest.json")
+
+    assert manifest["version"] == project_version
+    assert manifest["requirements"] == [f"wolf-325=={project_version}"]
 
 
 def test_yaml_and_service_metadata_match_config_entry_only_contract() -> None:
