@@ -1,0 +1,17 @@
+name: hassfest validation
+
+on:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  validate:
+    name: hassfest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: hassfest validation
+        uses: home-assistant/actions/hassfest@a7c616ce81ccda50150bf1595786c71b1883fabb

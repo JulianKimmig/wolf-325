@@ -11,6 +11,8 @@ import yaml
 REPOSITORY_ROOT = Path(__file__).parents[1]
 RELEASE_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
 VALIDATION_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "validate.yml"
+HACS_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "hacs.yaml"
+HASSFEST_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "hassfest.yaml"
 
 
 def _load_workflow() -> dict[str, Any]:
@@ -100,7 +102,23 @@ def test_repository_validation_uses_hacs_and_hassfest() -> None:
     }
     assert workflow["permissions"] == {}
 
-    hacs_steps = workflow["jobs"]["validate-hacs"]["steps"]
+    assert workflow["jobs"] == {
+        "validate-hacs": {
+            "name": "HACS",
+            "uses": "./.github/workflows/hacs.yaml",
+        },
+        "validate-hassfest": {
+            "name": "hassfest",
+            "uses": "./.github/workflows/hassfest.yaml",
+        },
+    }
+
+    hacs = yaml.load(
+        HACS_WORKFLOW.read_text(encoding="utf-8"), Loader=yaml.BaseLoader
+    )
+    assert hacs["on"] == {"workflow_call": ""}
+    assert hacs["permissions"] == {}
+    hacs_steps = hacs["jobs"]["validate"]["steps"]
     assert hacs_steps == [
         {
             "name": "HACS validation",
@@ -109,7 +127,12 @@ def test_repository_validation_uses_hacs_and_hassfest() -> None:
         }
     ]
 
-    hassfest_steps = workflow["jobs"]["validate-hassfest"]["steps"]
+    hassfest = yaml.load(
+        HASSFEST_WORKFLOW.read_text(encoding="utf-8"), Loader=yaml.BaseLoader
+    )
+    assert hassfest["on"] == {"workflow_call": ""}
+    assert hassfest["permissions"] == {}
+    hassfest_steps = hassfest["jobs"]["validate"]["steps"]
     assert hassfest_steps == [
         {
             "name": "Check out source",
