@@ -2,8 +2,8 @@
 
 `wolf-325` is a Python 3.11+ async Modbus controller for a WOLF CWL-2-325
 ventilation appliance connected through a Waveshare RS485-to-Ethernet gateway.
-It is the modular package port of the reference implementation in
-`.guides/wolf_cwl2_async`.
+The repository contains both the reusable Python client and its native Home
+Assistant custom integration.
 
 The package provides:
 
@@ -20,7 +20,15 @@ The package provides:
 
 ## Install
 
-This repository uses `uv`:
+Install the published client with uv:
+
+```bash
+uv tool install "wolf-325[tui]==0.1.0"
+wolf-cwl2 --help
+wolf-cwl2-tui --help
+```
+
+For repository development:
 
 ```bash
 uv sync --group dev
@@ -48,16 +56,12 @@ Recorder history, exposes the complete reviewed datapoint/control surface, and
 stores profiles independently in Home Assistant.
 
 Release status: the integration is fully exercised in the local Home Assistant
-2026.2.3 test host, but it is **not yet an end-user HACS/manual release**. The
-lightweight `wolf-325` client has not been published, and approved public
-package-index ownership and publication authority are not yet available. The
-project is licensed under MIT with Julian Kimmig as author, copyright holder,
-and GitHub code owner. Public repository, documentation, and issue links point
-to [JulianKimmig/wolf-325](https://github.com/JulianKimmig/wolf-325). The
-component manifest intentionally retains an empty client requirement until the
-exact package is published and pinned, so copying only
-`custom_components/wolf_cwl2` into Home Assistant does not yet constitute a
-supported release.
+2026.2.3 test host. The lightweight
+[`wolf-325==0.1.0`](https://pypi.org/project/wolf-325/0.1.0/) client is published
+on PyPI and pinned exactly in the component manifest. The public repository
+passes both HACS repository validation and Home Assistant hassfest. The project
+is licensed under MIT with Julian Kimmig as author, copyright holder, and
+GitHub code owner.
 
 For repository development:
 
@@ -68,9 +72,22 @@ UV_CACHE_DIR=.cache/uv uv run pytest \
   -p no:sugar tests/components/wolf_cwl2
 ```
 
-Once the release blockers are resolved, installation will use the standard
-HACS custom-repository flow or a manual copy of the single
-`custom_components/wolf_cwl2` directory, followed by a Home Assistant restart.
+### Install through HACS
+
+1. Open **HACS → Integrations**.
+2. Open the three-dot menu and choose **Custom repositories**.
+3. Add `https://github.com/JulianKimmig/wolf-325` with category
+   **Integration**.
+4. Select **WOLF CWL-2**, choose **Download**, and restart Home Assistant.
+
+HACS installs the integration from the repository's default `main` branch.
+After restarting, add the integration through Home Assistant as described
+below.
+
+For a manual installation, copy only `custom_components/wolf_cwl2` into the
+Home Assistant configuration directory's `custom_components/` folder and
+restart Home Assistant. Home Assistant installs the exact client requirement
+from PyPI while loading the integration.
 
 ### Add appliances and choose authority
 
@@ -169,13 +186,6 @@ Recorder history. Reload drains in-flight work and replaces only that entry's
 runtime. Removing an entry closes its transport and permanently deletes only
 its Home Assistant-owned desired state, lineage, and profiles; it does not write
 or reset the appliance.
-
-Detailed operator records:
-
-- [setup and policy](.docs/workflows/home-assistant-setup.md)
-- [profiles and capture](.docs/workflows/home-assistant-profiles.md)
-- [guarded resets](.docs/workflows/home-assistant-reset-actions.md)
-- [diagnostics and recovery](.docs/workflows/home-assistant-diagnostics-and-recovery.md)
 
 ## Interactive TUI
 
@@ -380,17 +390,6 @@ The verified 2026-07-18 run accounted for all 154 definitions: 153 available,
 one unsupported optional, zero decode errors, zero failed keys, and zero required
 failures. The raw report is intentionally untracked because it contains the
 device serial and live operational data.
-
-## Architecture records
-
-Durable package boundaries and behavior contracts are documented in:
-
-- [architecture](.docs/ARCHITECTURE.md)
-- [code relationships](.docs/code-relationships.md)
-- [controller domain](.docs/domains/cwl2-controller.md)
-- [API and JSON contracts](.docs/contracts/controller-api-and-json.md)
-- [physical-device validation](.docs/workflows/physical-device-validation.md)
-- [interactive TUI operation](.docs/workflows/tui-operation.md)
 
 ## License
 
