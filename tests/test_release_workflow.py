@@ -83,8 +83,10 @@ def test_release_workflow_qualifies_artifacts_before_publication() -> None:
     assert commands == expected_commands
 
     uses = [step["uses"] for step in steps if "uses" in step]
-    assert uses[0].startswith("actions/checkout@")
-    assert uses[1].startswith("astral-sh/setup-uv@")
+    assert [reference.split("@", 1)[0] for reference in uses] == [
+        "actions/checkout",
+        "astral-sh/setup-uv",
+    ]
 
 
 def test_repository_validation_uses_hacs_and_hassfest() -> None:
@@ -119,13 +121,13 @@ def test_repository_validation_uses_hacs_and_hassfest() -> None:
     assert hacs["on"] == {"workflow_call": ""}
     assert hacs["permissions"] == {}
     hacs_steps = hacs["jobs"]["validate"]["steps"]
-    assert hacs_steps == [
-        {
-            "name": "HACS validation",
-            "uses": "hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa",
-            "with": {"category": "integration", "comment": "false"},
-        }
-    ]
+    assert len(hacs_steps) == 1
+    assert hacs_steps[0]["name"] == "HACS validation"
+    assert hacs_steps[0]["uses"].split("@", 1)[0] == "hacs/action"
+    assert hacs_steps[0]["with"] == {
+        "category": "integration",
+        "comment": "false",
+    }
 
     hassfest = yaml.load(
         HASSFEST_WORKFLOW.read_text(encoding="utf-8"), Loader=yaml.BaseLoader
@@ -133,16 +135,11 @@ def test_repository_validation_uses_hacs_and_hassfest() -> None:
     assert hassfest["on"] == {"workflow_call": ""}
     assert hassfest["permissions"] == {}
     hassfest_steps = hassfest["jobs"]["validate"]["steps"]
-    assert hassfest_steps == [
-        {
-            "name": "Check out source",
-            "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
-        },
-        {
-            "name": "hassfest validation",
-            "uses": (
-                "home-assistant/actions/hassfest@"
-                "a7c616ce81ccda50150bf1595786c71b1883fabb"
-            ),
-        },
+    assert [step["name"] for step in hassfest_steps] == [
+        "Check out source",
+        "hassfest validation",
+    ]
+    assert [step["uses"].split("@", 1)[0] for step in hassfest_steps] == [
+        "actions/checkout",
+        "home-assistant/actions/hassfest",
     ]

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,16 @@ import yaml
 REPOSITORY_ROOT = Path(__file__).parents[1]
 DEPENDABOT_CONFIG = REPOSITORY_ROOT / ".github" / "dependabot.yml"
 CI_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "ci.yaml"
+WORKFLOW_DIRECTORY = REPOSITORY_ROOT / ".github" / "workflows"
+PINNED_ACTION_PATTERN = re.compile(
+    r"^(?P<action>[^@]+)@(?P<revision>[0-9a-f]{40})$"
+)
+ALLOWED_EXTERNAL_ACTIONS = {
+    "actions/checkout",
+    "astral-sh/setup-uv",
+    "hacs/action",
+    "home-assistant/actions/hassfest",
+}
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -25,6 +36,36 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     loaded = yaml.load(path.read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
     assert isinstance(loaded, dict)
     return loaded
+
+
+def _collect_external_actions(value: object) -> list[str]:
+    """Collect external action references from a parsed workflow tree.
+
+    Args:
+        value: Current workflow mapping, sequence, or scalar value.
+
+    Returns:
+        External ``uses`` references, excluding local reusable workflows.
+    """
+    if isinstance(value, dict):
+        actions: list[str] = []
+        for key, child in value.items():
+            if (
+                key == "uses"
+                and isinstance(child, str)
+                and not child.startswith("./")
+            ):
+                actions.append(child)
+            else:
+                actions.extend(_collect_external_actions(child))
+        return actions
+    if isinstance(value, list):
+        return [
+            action
+            for child in value
+            for action in _collect_external_actions(child)
+        ]
+    return []
 
 
 def test_dependabot_tracks_actions_and_uv_lockfile() -> None:
@@ -67,9 +108,9 @@ def test_ci_uses_locked_repository_native_commands() -> None:
 
     steps = workflow["jobs"]["test"]["steps"]
     uses = [step["uses"] for step in steps if "uses" in step]
-    assert uses == [
-        "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
-        "astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b",
+    assert [reference.split("@", 1)[0] for reference in uses] == [
+        "actions/checkout",
+        "astral-sh/setup-uv",
     ]
     commands = [step["run"] for step in steps if "run" in step]
     assert commands == [
@@ -94,3 +135,25 @@ def test_ci_uses_locked_repository_native_commands() -> None:
 
     assert not (REPOSITORY_ROOT / "requirements_dev.txt").exists()
     assert not (REPOSITORY_ROOT / "requirements_test.txt").exists()
+
+
+def test_all_external_actions_use_allowlisted_immutable_revisions() -> None:
+    """Require known external actions pinned to full commit revisions.
+
+    Returns:
+        None.
+    """
+    workflow_paths = sorted(WORKFLOW_DIRECTORY.glob("*.y*ml"))
+    references = [
+        reference
+        for path in workflow_paths
+        for reference in _collect_external_actions(_load_yaml(path))
+    ]
+
+    matches = [PINNED_ACTION_PATTERN.fullmatch(reference) for reference in references]
+    assert all(match is not None for match in matches), references
+    assert {
+        match.group("action")
+        for match in matches
+        if match is not None
+    } == ALLOWED_EXTERNAL_ACTIONS
