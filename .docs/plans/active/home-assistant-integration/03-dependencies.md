@@ -54,7 +54,7 @@ must complete before TASK-019.
 - Exact PyModbus compatibility with the selected Home Assistant environment.
 - A matching PyPI Trusted Publisher for the selected Julian Kimmig-owned
   `wolf-325` project.
-- Exact source-push, release-tag, package, and HACS publication authority.
+- Exact release-tag, package, and HACS publication authority.
 - A local `brand/` asset for Home Assistant 2026.3+; an external Brands path is
   relevant only if an older supported host or later upstream target requires it.
 - Access to the physical appliance and gateway for read-only validation.
@@ -65,7 +65,7 @@ must complete before TASK-019.
 | ID | Decision | Required before | Default if assumable |
 |---|---|---|---|
 | DEC-001 | Immutable integration domain and model scope | component directory/manifest | working proposal `wolf_cwl2`; do not encode until approved |
-| DEC-002 | Source push, Trusted Publisher, and release authority | package/manifest publication | no default; external blocker |
+| DEC-002 | Trusted Publisher and release authority | package/manifest publication | source push complete; remaining actions are external blockers |
 | DEC-003 | Temporary-mode capture permission | TASK-017 | reject save in v1 |
 | DEC-004 | Device date/time composite UX | TASK-012/013 | no writable exposure until approved |
 | DEC-005 | Poll minimum and freshness multiplier | TASK-009/011 | minimum 5 seconds; measured final values required |
@@ -81,8 +81,8 @@ when the following remain unanswered:
 
 1. What immutable domain and exact appliance/model scope should the first
    release promise?
-2. Which initial push, Trusted Publisher, tag, and package/HACS publication
-   actions are authorized?
+2. Which Trusted Publisher, tag, and package/HACS publication actions are
+   authorized?
 3. May temporary mode save a profile from dormant historical desired state?
 4. How should the four non-restorable device date/time fields appear and fail
    as one user operation?

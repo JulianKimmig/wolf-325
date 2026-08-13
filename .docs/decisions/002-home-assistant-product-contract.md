@@ -54,14 +54,15 @@ package metadata names Julian Kimmig as author. The public repository is
 `https://github.com/JulianKimmig/wolf-325`; its README and issue tracker are the
 approved documentation/support targets, and `@JulianKimmig` is the approved
 code owner. Production publication targets PyPI project `wolf-325`, owned by
-Julian Kimmig. The source push, matching PyPI Trusted Publisher, and exact
-release/tag actions remain unresolved. Those facts are not guessed. They block
-publishing the client, final manifest requirements, HACS publication, and
-TASK-020 release completion, but do not block local integration behavior.
+Julian Kimmig. The sanitized source was published as a new parentless `main`
+root; the archival development history remains local. The matching PyPI Trusted
+Publisher and exact release/tag actions remain unresolved. Those facts are not
+guessed. They block publishing the client, final manifest requirements, HACS
+publication, and TASK-020 release completion, but do not block local
+integration behavior.
 
-<!-- TODO(user): Authorize the exact initial source push, configure the matching
-PyPI Trusted Publisher, and authorize the release tag before TASK-007 or
-TASK-020 can be completed. -->
+<!-- TODO(user): Configure the matching PyPI Trusted Publisher and authorize
+the release tag before TASK-007 or TASK-020 can be completed. -->
 
 ## Consequences
 

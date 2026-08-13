@@ -116,18 +116,19 @@ raw report/config were deleted after recording the aggregate evidence.
 
 HACS/hassfest validation, manual/HACS disposable installation, exact manifest
 dependency, and release actions remain blocked by the unpublished client,
-initial source push, Trusted Publisher, and release-tag authority. PyPI
-`wolf-325`, owned by Julian Kimmig, is the selected production target. The
-public repository, documentation/issues URLs, `@JulianKimmig` code owner, and
-local `origin` exist; description, issues, and HACS-relevant topics are
-configured. Its initial push was not authorized, so it has no default branch
-yet. The plan therefore remains active and is not moved to `completed/`.
+Trusted Publisher, and release-tag authority. PyPI `wolf-325`, owned by Julian
+Kimmig, is the selected production target. The public repository,
+documentation/issues URLs, `@JulianKimmig` code owner, and local `origin` exist;
+description, issues, and HACS-relevant topics are configured. A sanitized,
+parentless `main` root was pushed while the archival `HA` history remained
+local; remote verification found no other branch. The plan therefore remains
+active and is not moved to `completed/`.
 
 ## Stop Conditions
 
 - Exact client artifact is unpublished/uninstallable.
-- Required push/trusted-publisher/release/HACS authority is unavailable.
-- Any external publish/push/Brands action lacks explicit authority.
+- Required trusted-publisher/release/HACS authority is unavailable.
+- Any further external publish/push/Brands action lacks explicit authority.
 - Physical validation would require a write/profile/reset or expose sensitive
   evidence without separate authorization.
 - Any acceptance gate remains incomplete; mark blocked rather than completing.

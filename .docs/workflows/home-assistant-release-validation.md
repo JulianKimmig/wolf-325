@@ -31,7 +31,7 @@ package index and all required public ownership metadata is approved.
 | Public client artifact | PyPI `wolf-325`, owned by Julian Kimmig, selected for production; currently unpublished | Blocks exact manifest requirement until Trusted Publisher release succeeds |
 | License and author | MIT; Julian Kimmig is author and copyright holder | Qualified in wheel/sdist metadata tests |
 | Public repository metadata | `JulianKimmig/wolf-325`, README documentation, issues, and `@JulianKimmig` owner | Declared in package/component/CODEOWNERS and tested |
-| Push/publish authority | Production PyPI target selected; initial push, Trusted Publisher, tag, and HACS actions remain separately gated | Blocks external mutation |
+| Push/publish authority | Sanitized initial `main` push completed; Trusted Publisher, tag, PyPI, and HACS actions remain separately gated | Blocks remaining external mutation |
 
 The component `manifest.json` contains the approved public documentation,
 issue-tracker, and code-owner fields. It intentionally retains an empty
@@ -41,9 +41,12 @@ version.
 
 The public `JulianKimmig/wolf-325` repository was created on 2026-08-13 with a
 description, issues enabled, and the `home-assistant`, `hacs`, `modbus`,
-`ventilation`, and `wolf` topics. It is configured as local `origin` but has no
-default branch because pushing was not authorized. Public HACS validation must
-therefore wait for a separately authorized initial push.
+`ventilation`, and `wolf` topics. Its `main` branch was published as a new,
+parentless root containing the current source tree. The archival `HA` branch
+and its earlier private development history remain local and were not pushed.
+Remote verification found only `refs/heads/main`. Public HACS validation still
+waits for an exact published client requirement and the remaining release
+gates.
 
 The client distribution is licensed under MIT with `Copyright (c) 2026 Julian
 Kimmig`; `pyproject.toml` also declares Julian Kimmig as author. Build tests

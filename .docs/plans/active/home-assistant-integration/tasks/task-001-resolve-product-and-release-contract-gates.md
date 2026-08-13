@@ -91,9 +91,11 @@ identity, polling, authority, date/time, counter, reconciliation, and reset
 contracts. MIT licensing, Julian Kimmig authorship/code ownership, and the
 public repository/docs/issues URLs were resolved on 2026-08-13. Package-index
 target/ownership was then resolved as PyPI `wolf-325`, owned by Julian Kimmig.
-Exact push/trusted-publisher/release authority and broader fleet identity
-evidence remain named external blockers for TASK-007/TASK-020. Physical writes
-were not performed. Commit hash is recorded after this closed slice.
+The sanitized source was published as a parentless public `main` root while the
+archival `HA` history remained local. Exact trusted-publisher/release authority
+and broader fleet identity evidence remain named external blockers for
+TASK-007/TASK-020. Physical writes were not performed. Commit hash is recorded
+after this closed slice.
 
 ## Stop Conditions
 

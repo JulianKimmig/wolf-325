@@ -84,13 +84,14 @@ publishes `License-Expression: MIT`, `License-File: LICENSE`, and the selected
 author. Public project URLs and `@JulianKimmig` code ownership are now declared
 in package/component metadata and behavioral tests. PyPI project `wolf-325`,
 owned by Julian Kimmig, is the selected production target; its JSON API returned
-404 before initial publication. Publication remains blocked until the source is
-pushed and a matching Trusted Publisher/release tag is authorized and
-configured. No artifact was uploaded, tagged, pushed, or referenced from the
-component manifest.
+404 before initial publication. The source is now published from a sanitized
+parentless `main` root; the archival `HA` history remains local. Package
+publication remains blocked until a matching Trusted Publisher and release tag
+are authorized and configured. No artifact was uploaded, tagged, or referenced
+from the component manifest.
 
 ## Stop Conditions
 
-- Initial source push, Trusted Publisher, or release-tag authority is unresolved.
+- Trusted Publisher or release-tag authority is unresolved.
 - Selected HA environment conflicts with the client dependency.
 - Exact artifact installation fails; do not proceed with a release manifest pin.

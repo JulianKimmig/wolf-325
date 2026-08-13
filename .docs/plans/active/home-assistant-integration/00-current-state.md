@@ -67,7 +67,7 @@ The user journey is:
 - Guarded reset actions; no normal control entities for dangerous Modbus
   communication settings or appliance reset.
 - Test-first implementation, modular source below 300 lines, accurate durable
-  documentation, atomic commits, clean worktree, and no pushes.
+  documentation, atomic commits, a clean worktree, and no unauthorized pushes.
 
 ## Source-Derived Constraints
 
@@ -181,7 +181,8 @@ unvalidated counter statistics, and routine physical writes/resets.
 
 Blocking before publishable implementation:
 
-- exact source-push/trusted-publisher/release authorization.
+- exact trusted-publisher/release authorization. The sanitized initial source
+  push is complete; archival development history remains local.
 
 No local behavior decision remains unresolved. The accepted first-release
 choices are:
