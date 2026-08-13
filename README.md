@@ -23,7 +23,7 @@ The package provides:
 Install the published client with uv:
 
 ```bash
-uv tool install "wolf-325[tui]==0.1.1"
+uv tool install "wolf-325[tui]==0.1.2"
 wolf-cwl2 --help
 wolf-cwl2-tui --help
 ```
@@ -57,7 +57,7 @@ stores profiles independently in Home Assistant.
 
 Release status: the integration is fully exercised in the local Home Assistant
 2026.2.3 test host. The lightweight
-[`wolf-325==0.1.1`](https://pypi.org/project/wolf-325/0.1.1/) client is published
+[`wolf-325==0.1.2`](https://pypi.org/project/wolf-325/0.1.2/) client is published
 on PyPI and pinned exactly by integration version `0.1.2`. The public repository
 passes both HACS repository validation and Home Assistant hassfest. The project
 is licensed under MIT with Julian Kimmig as author, copyright holder, and
