@@ -1,7 +1,0 @@
-interface:
-  display_name: "Think With Agents"
-  short_description: "Structured multi-agent task reasoning"
-  default_prompt: "Use $think-with-agents to explore this task with structured multi-agent reasoning before answering."
-
-policy:
-  allow_implicit_invocation: false

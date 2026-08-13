@@ -1,7 +1,0 @@
-interface:
-  display_name: "Repo Rule Search"
-  short_description: "Find applicable local repo rules"
-  default_prompt: "Use $repo-rule-search to find applicable local rules before this task."
-
-policy:
-  allow_implicit_invocation: true

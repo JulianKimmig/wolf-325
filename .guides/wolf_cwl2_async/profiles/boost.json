@@ -1,8 +1,0 @@
-{
-  "description": "Maximum preset ventilation",
-  "settings": {
-    "remote_control_mode": "level",
-    "remote_standby": false,
-    "remote_ventilation_level": "high"
-  }
-}
