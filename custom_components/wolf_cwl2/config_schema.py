@@ -7,6 +7,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.helpers import config_validation as cv
 
 from .const import (
     AUTHORITY_MODES,
@@ -45,7 +46,9 @@ def connection_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
     values = dict(defaults or {})
     return vol.Schema(
         {
-            vol.Required(CONF_HOST, default=values.get(CONF_HOST, "")): _host,
+            vol.Required(
+                CONF_HOST, default=values.get(CONF_HOST, "")
+            ): vol.All(cv.string, vol.Length(min=1)),
             vol.Required(CONF_PORT, default=values.get(CONF_PORT, 502)): vol.All(
                 vol.Coerce(int), vol.Range(min=1, max=65535)
             ),
@@ -105,21 +108,3 @@ def intervals_are_valid(options: Mapping[str, Any]) -> bool:
         ``True`` only when every interval is at least five seconds.
     """
     return all(int(options[field]) >= MIN_INTERVAL_SECONDS for field in INTERVAL_FIELDS)
-
-
-def _host(value: Any) -> str:
-    """Normalize a non-empty endpoint host without inventing a fallback.
-
-    Args:
-        value: User-supplied host value.
-
-    Returns:
-        Stripped host string.
-
-    Raises:
-        vol.Invalid: If the value is empty after stripping.
-    """
-    host = str(value).strip()
-    if not host:
-        raise vol.Invalid("host must not be empty")
-    return host
