@@ -8,8 +8,6 @@ preview_profile_capture:
       selector:
         config_entry:
           integration: wolf_cwl2
-  response:
-    optional: false
 save_profile:
   name: Save profile
   description: Save the current persistent desired-state delta to this entry's Home Assistant profile catalogue.
@@ -46,8 +44,6 @@ save_profile:
         number:
           min: 0
           mode: box
-  response:
-    optional: false
 reset_filter:
   name: Reset filter warning
   description: Dispatch the dedicated filter-reset action without changing desired settings.
@@ -64,8 +60,6 @@ reset_filter:
       required: true
       selector:
         text:
-  response:
-    optional: false
 reset_appliance:
   name: Reset appliance
   description: Dispatch a reboot/reset command after option, administrator, phrase, mode, and live-identity checks.
@@ -82,5 +76,3 @@ reset_appliance:
       required: true
       selector:
         text:
-  response:
-    optional: false

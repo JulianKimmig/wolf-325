@@ -8,11 +8,13 @@ import struct
 from typing import Any
 
 import pytest
+import yaml
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.wolf_cwl2.const import DOMAIN
+from custom_components.wolf_cwl2 import CONFIG_SCHEMA
 
 from .fakes import FakeGateway
 from .test_config_flow import CONNECTION, DEFAULT_OPTIONS
@@ -44,6 +46,18 @@ def test_manifest_and_custom_translation_are_complete() -> None:
         None.
     """
     manifest = _read_json(COMPONENT_ROOT / "manifest.json")
+    assert list(manifest) == [
+        "domain",
+        "name",
+        "codeowners",
+        "config_flow",
+        "documentation",
+        "integration_type",
+        "iot_class",
+        "issue_tracker",
+        "requirements",
+        "version",
+    ]
     assert manifest == {
         "codeowners": ["@JulianKimmig"],
         "config_flow": True,
@@ -61,6 +75,23 @@ def test_manifest_and_custom_translation_are_complete() -> None:
     assert translations["title"] == "WOLF CWL-2"
     assert "config" in translations
     assert not (COMPONENT_ROOT / "strings.json").exists()
+
+
+def test_yaml_and_service_metadata_match_config_entry_only_contract() -> None:
+    """Reject YAML setup metadata and unsupported service-response fields.
+
+    Returns:
+        None.
+    """
+    config: dict[str, Any] = {}
+    assert CONFIG_SCHEMA(config) is config
+
+    services = yaml.safe_load(
+        (COMPONENT_ROOT / "services.yaml").read_text(encoding="utf-8")
+    )
+    assert isinstance(services, dict)
+    assert services
+    assert all("response" not in description for description in services.values())
 
 
 def test_local_hacs_layout_and_brand_asset_are_structurally_complete() -> None:

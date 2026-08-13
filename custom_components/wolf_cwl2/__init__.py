@@ -8,11 +8,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryError
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from wolf_325 import WolfCWL2
 
-from .const import CONF_ALLOW_APPLIANCE_RESET, CONF_AUTHORITY, DEFAULT_OPTIONS
+from .const import CONF_ALLOW_APPLIANCE_RESET, CONF_AUTHORITY, DEFAULT_OPTIONS, DOMAIN
 from .coordinator import WolfCWL2Coordinator
 from .entry_config import build_client_config
 from .runtime import EntryRuntime, WolfCWL2ConfigEntry
@@ -27,6 +28,8 @@ PLATFORMS = (
     Platform.SENSOR,
     Platform.SWITCH,
 )
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
