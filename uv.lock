@@ -3759,7 +3759,7 @@ wheels = [
 
 [[package]]
 name = "wolf-325"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "pymodbus" },
@@ -3781,7 +3781,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "pymodbus", specifier = "==3.14.0" },
+    { name = "pymodbus", specifier = ">=3.11.2,<3.15" },
     { name = "textual", marker = "extra == 'tui'", specifier = ">=8.2,<9" },
 ]
 provides-extras = ["tui"]

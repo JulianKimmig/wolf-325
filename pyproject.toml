@@ -1,13 +1,13 @@
 [project]
 name = "wolf-325"
-version = "0.1.0"
+version = "0.1.1"
 description = "Async Modbus controller for WOLF CWL-2-325 ventilation units"
 readme = "README.md"
 authors = [{ name = "Julian Kimmig" }]
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
-dependencies = ["pymodbus==3.14.0"]
+dependencies = ["pymodbus>=3.11.2,<3.15"]
 
 [project.urls]
 Repository = "https://github.com/JulianKimmig/wolf-325"
