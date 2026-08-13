@@ -1,0 +1,9 @@
+{
+  "description": "Example composed profile: night flow with bypass forced open",
+  "extends": [
+    "night"
+  ],
+  "settings": {
+    "bypass_mode": "open"
+  }
+}

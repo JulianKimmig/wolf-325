@@ -1,0 +1,171 @@
+{
+  "title": "WOLF CWL-2",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to a WOLF CWL-2",
+        "description": "Enter the Modbus gateway details for one ventilation appliance.",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "device_id": "Device ID",
+          "transport": "Transport",
+          "address_offset": "Address offset"
+        }
+      },
+      "reconfigure": {
+        "title": "Change the Modbus gateway",
+        "description": "The new endpoint must report the same appliance serial number.",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "device_id": "Device ID",
+          "transport": "Transport",
+          "address_offset": "Address offset"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to the appliance.",
+      "invalid_identity": "The appliance identity could not be verified.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This appliance is already configured.",
+      "reconfigure_mismatch": "The new endpoint belongs to a different appliance."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "WOLF CWL-2 runtime policy",
+        "description": "Choose control authority, polling intervals in seconds, and optional register tiers.",
+        "data": {
+          "authority": "Control authority",
+          "fast_interval_seconds": "Fast polling interval",
+          "slow_interval_seconds": "Slow polling interval",
+          "static_interval_seconds": "Static polling interval",
+          "reconcile_interval_seconds": "Persistent reconciliation interval",
+          "read_holding_registers": "Read holding-register datapoints",
+          "read_extension_registers": "Read optional extension datapoints",
+          "allow_appliance_reset": "Allow the guarded appliance reset action"
+        }
+      }
+    },
+    "error": {
+      "invalid_interval": "Every interval must be at least 5 seconds."
+    }
+  },
+  "entity": {
+    "button": {
+      "clear_desired": {
+        "name": "Clear desired ownership"
+      },
+      "resume_desired": {
+        "name": "Resume desired ownership"
+      }
+    },
+    "number": {
+      "register": {
+        "name": "{name}"
+      }
+    },
+    "select": {
+      "profile": {
+        "name": "Profile"
+      },
+      "register": {
+        "name": "{name}"
+      }
+    },
+    "sensor": {
+      "register": {
+        "name": "{name}"
+      }
+    },
+    "switch": {
+      "register": {
+        "name": "{name}"
+      }
+    }
+  },
+  "issues": {
+    "identity_mismatch": {
+      "title": "WOLF CWL-2 appliance identity changed",
+      "description": "The live appliance no longer matches a configured entry. Reconfigure that entry to the correct gateway endpoint, or remove and add the appliance again."
+    },
+    "corrupt_store": {
+      "title": "WOLF CWL-2 stored data is invalid",
+      "description": "A WOLF CWL-2 entry cannot load its Home Assistant-owned desired state or profiles. Restore Home Assistant from a known-good backup, or remove and add the affected entry to create new storage."
+    },
+    "unsupported_store": {
+      "title": "WOLF CWL-2 stored data is from a newer version",
+      "description": "A WOLF CWL-2 entry uses a storage schema this integration cannot read. Install the integration version that created the data; do not edit the storage file manually."
+    }
+  },
+  "exceptions": {
+    "admin_required": {
+      "message": "The appliance reset action requires a Home Assistant administrator."
+    },
+    "appliance_confirmation": {
+      "message": "Enter exactly RESET APPLIANCE to dispatch this action."
+    },
+    "appliance_reset_disabled": {
+      "message": "The guarded appliance reset action is not enabled in this entry's options."
+    },
+    "appliance_disconnected": {
+      "message": "The WOLF CWL-2 appliance is disconnected."
+    },
+    "appliance_unavailable": {
+      "message": "The WOLF CWL-2 appliance is unavailable."
+    },
+    "entry_stopping": {
+      "message": "The WOLF CWL-2 entry is stopping."
+    },
+    "entry_unavailable": {
+      "message": "The selected WOLF CWL-2 entry is not loaded."
+    },
+    "control_required": {
+      "message": "This action requires temporary or persistent control mode."
+    },
+    "desired_apply_incomplete": {
+      "message": "Desired ownership was activated, but the appliance did not confirm every setting. The values remain queued for retry."
+    },
+    "desired_dormant": {
+      "message": "Retained desired ownership is dormant. Resume or clear it before changing persistent settings."
+    },
+    "identity_changed": {
+      "message": "The live appliance identity no longer matches this entry."
+    },
+    "invalid_setting": {
+      "message": "The requested setting is invalid: {detail}"
+    },
+    "invalid_profile": {
+      "message": "The selected profile is invalid: {detail}"
+    },
+    "filter_confirmation": {
+      "message": "Enter exactly EXECUTE ACTION to reset the filter warning."
+    },
+    "monitor_only": {
+      "message": "This WOLF CWL-2 entry is in monitor-only mode."
+    },
+    "persistent_required": {
+      "message": "This action requires persistent control mode."
+    },
+    "profile_apply_incomplete": {
+      "message": "The profile was not fully confirmed by the appliance. Persistent desired values remain queued where applicable."
+    },
+    "reset_failed": {
+      "message": "The appliance did not confirm the reset action."
+    },
+    "setting_not_confirmed": {
+      "message": "The appliance did not confirm the requested setting."
+    },
+    "store_revision_changed": {
+      "message": "The stored settings changed after preview. Preview again before saving."
+    },
+    "unknown_profile": {
+      "message": "The profile {name} does not exist in this entry."
+    }
+  }
+}

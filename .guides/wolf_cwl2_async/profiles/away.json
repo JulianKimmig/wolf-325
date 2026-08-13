@@ -1,0 +1,8 @@
+{
+  "description": "Holiday/away ventilation; keeps the appliance running at its lowest preset",
+  "settings": {
+    "remote_control_mode": "level",
+    "remote_standby": false,
+    "remote_ventilation_level": "holiday"
+  }
+}

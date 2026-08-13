@@ -1,0 +1,17 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Virtual environments
+.venv
+
+# Local controller configuration and live device state
+wolf_cwl2_config.json
+wolf_state.json

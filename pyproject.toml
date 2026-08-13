@@ -1,0 +1,44 @@
+[project]
+name = "wolf-325"
+version = "0.1.0"
+description = "Async Modbus controller for WOLF CWL-2-325 ventilation units"
+readme = "README.md"
+authors = [{ name = "Julian Kimmig" }]
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+dependencies = ["pymodbus==3.14.0"]
+
+[project.urls]
+Repository = "https://github.com/JulianKimmig/wolf-325"
+Documentation = "https://github.com/JulianKimmig/wolf-325#readme"
+Issues = "https://github.com/JulianKimmig/wolf-325/issues"
+
+[project.optional-dependencies]
+tui = ["textual>=8.2,<9"]
+
+[project.scripts]
+wolf-cwl2 = "wolf_325.cli:main"
+wolf-cwl2-tui = "wolf_325.tui:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.4",
+  "pytest-asyncio>=1.1",
+  "pytest-cov>=6.2",
+  "pytest-homeassistant-custom-component==0.13.316",
+  "textual>=8.2,<9",
+]
+
+[tool.uv.dependency-groups]
+dev = { requires-python = ">=3.13.2,<3.14" }
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+include = ["src/wolf_325"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wolf_325"]

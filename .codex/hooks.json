@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/repo-rules/rules_context.py\"",
+            "timeout": 10,
+            "statusMessage": "Loading repo rule bootstrap",
+            "codexmanager_meta": {
+              "managed": true,
+              "hook": "repo-rules",
+              "version": 1
+            }
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/repo-rules/rules_context.py\"",
+            "timeout": 10,
+            "statusMessage": "Loading repo rule bootstrap",
+            "codexmanager_meta": {
+              "managed": true,
+              "hook": "repo-rules",
+              "version": 1
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

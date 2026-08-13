@@ -1,0 +1,86 @@
+preview_profile_capture:
+  name: Preview profile capture
+  description: Preview the exact persistent desired-state delta without reading or writing the appliance.
+  fields:
+    config_entry_id:
+      name: Device entry
+      required: true
+      selector:
+        config_entry:
+          integration: wolf_cwl2
+  response:
+    optional: false
+save_profile:
+  name: Save profile
+  description: Save the current persistent desired-state delta to this entry's Home Assistant profile catalogue.
+  fields:
+    config_entry_id:
+      name: Device entry
+      required: true
+      selector:
+        config_entry:
+          integration: wolf_cwl2
+    name:
+      name: Profile name
+      required: true
+      selector:
+        text:
+    description:
+      name: Description
+      required: false
+      selector:
+        text:
+          multiline: true
+    overwrite:
+      name: Overwrite
+      description: Replace an existing profile only after validating the complete inheritance graph.
+      default: false
+      required: false
+      selector:
+        boolean:
+    expected_revision:
+      name: Expected Store revision
+      description: Optional revision returned by Preview profile capture for optimistic concurrency safety.
+      required: false
+      selector:
+        number:
+          min: 0
+          mode: box
+  response:
+    optional: false
+reset_filter:
+  name: Reset filter warning
+  description: Dispatch the dedicated filter-reset action without changing desired settings.
+  fields:
+    config_entry_id:
+      name: Device entry
+      required: true
+      selector:
+        config_entry:
+          integration: wolf_cwl2
+    confirmation:
+      name: Confirmation
+      description: Enter exactly EXECUTE ACTION.
+      required: true
+      selector:
+        text:
+  response:
+    optional: false
+reset_appliance:
+  name: Reset appliance
+  description: Dispatch a reboot/reset command after option, administrator, phrase, mode, and live-identity checks.
+  fields:
+    config_entry_id:
+      name: Device entry
+      required: true
+      selector:
+        config_entry:
+          integration: wolf_cwl2
+    confirmation:
+      name: Confirmation
+      description: Enter exactly RESET APPLIANCE.
+      required: true
+      selector:
+        text:
+  response:
+    optional: false

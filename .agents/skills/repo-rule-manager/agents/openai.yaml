@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Rule Manager"
+  short_description: "Create and update repo rules"
+  default_prompt: "Use $repo-rule-manager to turn this repository preference into a durable local rule."

@@ -1,0 +1,9 @@
+{
+  "description": "Night flow with bypass forced open",
+  "extends": [
+    "night"
+  ],
+  "settings": {
+    "bypass_mode": "open"
+  }
+}

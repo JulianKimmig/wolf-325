@@ -1,0 +1,18 @@
+[agents_md]
+src = ["coding", "autocommit", "System-of-record", "python", "uv", "repo-rules"]
+
+[skills]
+enabled = ["conventional-commit", "implementation-plan", "think-with-agents", "repo-rule-manager", "repo-rule-search"]
+disabled = []
+
+[hooks]
+enabled = ["repo-rules"]
+disabled = []
+
+[agents]
+enabled = ["rule-retriever"]
+disabled = []
+
+[rules]
+enabled = ["plan-location_when_system_of_record.md", "process-wait-brainstorming.md", "user-refinement-todos.md"]
+disabled = []

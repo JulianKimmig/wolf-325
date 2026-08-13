@@ -1,0 +1,8 @@
+[pytest]
+addopts = ["--strict-config", "--strict-markers", "-p", "no:homeassistant"]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+norecursedirs = ["components"]
+markers = [
+  "hardware: requires the explicitly configured physical WOLF appliance",
+]
