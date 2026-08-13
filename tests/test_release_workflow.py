@@ -10,6 +10,7 @@ import yaml
 
 REPOSITORY_ROOT = Path(__file__).parents[1]
 RELEASE_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "release.yml"
+VALIDATION_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "validate.yml"
 
 
 def _load_workflow() -> dict[str, Any]:
@@ -19,6 +20,19 @@ def _load_workflow() -> dict[str, Any]:
         Parsed workflow mapping whose scalar values remain strings.
     """
     loaded = yaml.load(RELEASE_WORKFLOW.read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
+    assert isinstance(loaded, dict)
+    return loaded
+
+
+def _load_validation_workflow() -> dict[str, Any]:
+    """Load the repository-validation workflow as a string-preserving mapping.
+
+    Returns:
+        Parsed HACS and hassfest workflow configuration.
+    """
+    loaded = yaml.load(
+        VALIDATION_WORKFLOW.read_text(encoding="utf-8"), Loader=yaml.BaseLoader
+    )
     assert isinstance(loaded, dict)
     return loaded
 
@@ -69,3 +83,43 @@ def test_release_workflow_qualifies_artifacts_before_publication() -> None:
     uses = [step["uses"] for step in steps if "uses" in step]
     assert uses[0].startswith("actions/checkout@")
     assert uses[1].startswith("astral-sh/setup-uv@")
+
+
+def test_repository_validation_uses_hacs_and_hassfest() -> None:
+    """Require official HACS and Home Assistant validation on public changes.
+
+    Returns:
+        None.
+    """
+    workflow = _load_validation_workflow()
+    assert workflow["on"] == {
+        "push": "",
+        "pull_request": "",
+        "schedule": [{"cron": "0 0 * * *"}],
+        "workflow_dispatch": "",
+    }
+    assert workflow["permissions"] == {}
+
+    hacs_steps = workflow["jobs"]["validate-hacs"]["steps"]
+    assert hacs_steps == [
+        {
+            "name": "HACS validation",
+            "uses": "hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa",
+            "with": {"category": "integration", "comment": "false"},
+        }
+    ]
+
+    hassfest_steps = workflow["jobs"]["validate-hassfest"]["steps"]
+    assert hassfest_steps == [
+        {
+            "name": "Check out source",
+            "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        },
+        {
+            "name": "hassfest validation",
+            "uses": (
+                "home-assistant/actions/hassfest@"
+                "a7c616ce81ccda50150bf1595786c71b1883fabb"
+            ),
+        },
+    ]
