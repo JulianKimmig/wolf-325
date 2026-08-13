@@ -128,15 +128,33 @@ class WolfCWL2App(TuiOperationsMixin, App[None]):
         await self.service.stop()
 
     def _tick(self) -> None:
-        """Copy controller state only while the default screen remains mounted.
+        """Copy controller state only while every redraw widget remains mounted.
 
         Returns:
             None after redrawing, or immediately for a queued teardown tick.
         """
-        if not self.screen_stack or not self.screen.is_mounted:
+        if not self._redraw_widgets_available():
             return
         self._refresh_snapshot()
         self._render_table()
+
+    def _redraw_widgets_available(self) -> bool:
+        """Return whether a queued tick can safely query every required widget.
+
+        Returns:
+            True only while the screen and all widgets used by redraw remain.
+        """
+        if not self.screen_stack or not self.screen.is_mounted:
+            return False
+        selectors = (
+            "#connection-status",
+            "#search",
+            "#register-table",
+            "#register-details",
+            "#edit",
+            "#release",
+        )
+        return all(len(self.query(selector)) == 1 for selector in selectors)
 
     def _refresh_snapshot(self) -> None:
         """Fetch one isolated snapshot and update the connection status line."""

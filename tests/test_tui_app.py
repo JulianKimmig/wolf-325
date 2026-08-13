@@ -57,6 +57,24 @@ async def test_redraw_tick_is_inert_after_application_unmount(
 
 
 @pytest.mark.asyncio
+async def test_redraw_tick_is_inert_during_widget_teardown(
+    controller: tuple[object, object],
+) -> None:
+    """Ignore a queued timer after teardown removes a required root widget."""
+    instance, _ = controller
+    app = WolfCWL2App(
+        controller=instance,  # type: ignore[arg-type]
+        read_only=False,
+        refresh_interval=60,
+        background=False,
+    )
+
+    async with app.run_test(size=(180, 52)):
+        await app.query_one("#connection-status", Static).remove()
+        app._tick()
+
+
+@pytest.mark.asyncio
 async def test_all_view_and_search_cover_complete_catalogue(
     controller: tuple[object, object],
 ) -> None:
