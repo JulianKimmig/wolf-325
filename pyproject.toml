@@ -7,7 +7,7 @@ authors = [{ name = "Julian Kimmig" }]
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
-dependencies = ["pymodbus>=3.11.2,<3.15"]
+dependencies = ["pymodbus>=3.11.2,<3.16"]
 
 [project.urls]
 Repository = "https://github.com/JulianKimmig/wolf-325"
