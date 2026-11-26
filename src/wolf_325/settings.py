@@ -56,7 +56,11 @@ class SettingsMixin:
             raise RegisterError("controller is in read-only mode")
         if self.config is None:
             await self.load_config()
-        normalized = normalize_settings(changes, allow_dangerous=allow_dangerous)
+        normalized = normalize_settings(
+            changes,
+            allow_dangerous=allow_dangerous,
+            max_airflow_m3h=float(self.config["appliance"]["max_airflow_m3h"]),
+        )
         await validate_live_relations(self, normalized)
         current_desired = {} if replace_desired else self.desired
         active_profile = (

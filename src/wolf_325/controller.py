@@ -102,9 +102,18 @@ class WolfCWL2(
         Returns:
             Unloaded controller ready for explicit lifecycle ownership.
         """
+        appliance = config.get("appliance")
+        max_airflow_m3h = (
+            float(appliance.get("max_airflow_m3h", 325))
+            if isinstance(appliance, Mapping)
+            else 325
+        )
         return cls(
             config_store=RuntimeConfigStore(config, save_callback=save_callback),
-            profile_repository=profile_repository or MemoryProfileRepository(),
+            profile_repository=profile_repository
+            or MemoryProfileRepository(
+                max_airflow_m3h=max_airflow_m3h
+            ),
         )
     async def load_config(self) -> dict[str, Any]:
         """Load configuration and initialize its relative profile directory."""
@@ -114,7 +123,12 @@ class WolfCWL2(
                 self.config.get("profiles_dir")
             )
             assert profiles_path is not None
-            self.profile_loader = ProfileLoader(profiles_path)
+            self.profile_loader = ProfileLoader(
+                profiles_path,
+                max_airflow_m3h=float(
+                    self.config["appliance"]["max_airflow_m3h"]
+                ),
+            )
         return copy.deepcopy(self.config)
 
     async def start(

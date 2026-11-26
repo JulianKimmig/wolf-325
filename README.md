@@ -1,7 +1,8 @@
 # Async WOLF CWL-2-325 controller
 
-`wolf-325` is a Python 3.11+ async Modbus controller for a WOLF CWL-2-325
-ventilation appliance connected through a Waveshare RS485-to-Ethernet gateway.
+`wolf-325` is a Python 3.11+ async Modbus controller for WOLF CWL-2 ventilation
+appliances connected through a Waveshare RS485-to-Ethernet gateway. It supports
+the CWL-2-225, CWL-2-325, CWL-2-400, CWL-2-450, and CWL-2-600 variants.
 The repository contains both the reusable Python client and its native Home
 Assistant custom integration.
 
@@ -94,10 +95,11 @@ from PyPI while loading the integration.
 In Home Assistant, open **Settings → Devices & services → Add integration** and
 select **WOLF CWL-2**. Enter the gateway host/port, Modbus unit ID, transport
 (`modbus_tcp` or `rtu_over_tcp`), and address offset (`0` normally, `-1` only for
-a gateway that maps one-based addresses). Setup performs a read-only identity
-probe. The verified 12-digit serial is the stable identity, so moving a gateway
-does not replace Recorder history. Add each additional appliance as a separate
-entry; duplicate serials are rejected.
+a gateway that maps one-based addresses). Select the appliance model to set the
+maximum direct airflow and preset limits (225, 325, 400, 450, or 600 m³/h).
+Setup performs a read-only identity probe. The verified 12-digit serial is the
+stable identity, so moving a gateway does not replace Recorder history. Add each
+additional appliance as a separate entry; duplicate serials are rejected.
 
 Entry options provide three authority modes:
 

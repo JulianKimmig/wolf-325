@@ -44,7 +44,13 @@ class SaveProfileRequest:
 class RegisterEditor(ModalScreen[WriteRequest | None]):
     """Edit one value using controls derived from canonical metadata."""
 
-    def __init__(self, register: RegisterDef, spec: EditorSpec) -> None:
+    def __init__(
+        self,
+        register: RegisterDef,
+        spec: EditorSpec,
+        *,
+        max_airflow_m3h: float = 325,
+    ) -> None:
         """Initialize the register modal.
 
         Args:
@@ -54,6 +60,7 @@ class RegisterEditor(ModalScreen[WriteRequest | None]):
         super().__init__()
         self.register = register
         self.spec = spec
+        self.max_airflow_m3h = max_airflow_m3h
 
     def compose(self) -> ComposeResult:
         """Yield the value, persistence, confirmation, and action controls."""
@@ -91,7 +98,11 @@ class RegisterEditor(ModalScreen[WriteRequest | None]):
             value = self.query_one("#editor-input", Input).value
         try:
             if self.spec.kind != "action":
-                parse_editor_value(self.register, value)
+                parse_editor_value(
+                    self.register,
+                    value,
+                    max_airflow_m3h=self.max_airflow_m3h,
+                )
         except ValueError as exc:
             self.query_one("#editor-error", Static).update(str(exc))
             return

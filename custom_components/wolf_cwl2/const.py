@@ -5,6 +5,7 @@ from typing import Final
 DOMAIN = "wolf_cwl2"
 INTEGRATION_NAME = "WOLF CWL-2"
 
+CONF_MODEL: Final = "model"
 CONF_DEVICE_ID: Final = "device_id"
 CONF_TRANSPORT: Final = "transport"
 CONF_ADDRESS_OFFSET: Final = "address_offset"
@@ -18,6 +19,14 @@ CONF_READ_EXTENSION: Final = "read_extension_registers"
 CONF_ALLOW_APPLIANCE_RESET: Final = "allow_appliance_reset"
 
 AUTHORITY_MODES: Final = ("monitor_only", "temporary", "persistent")
+APPLIANCE_MODELS: Final[dict[str, int]] = {
+    "CWL-2-225": 225,
+    "CWL-2-325": 325,
+    "CWL-2-400": 400,
+    "CWL-2-450": 450,
+    "CWL-2-600": 600,
+}
+DEFAULT_MODEL: Final = "CWL-2-325"
 MIN_INTERVAL_SECONDS: Final = 5
 DEFAULT_OPTIONS: Final[dict[str, object]] = {
     CONF_AUTHORITY: "monitor_only",
@@ -29,3 +38,12 @@ DEFAULT_OPTIONS: Final[dict[str, object]] = {
     CONF_READ_EXTENSION: True,
     CONF_ALLOW_APPLIANCE_RESET: False,
 }
+
+
+def max_airflow_for_model(model: object) -> int:
+    """Return the validated airflow capacity for a configured model."""
+    if model is None:
+        return APPLIANCE_MODELS[DEFAULT_MODEL]
+    if isinstance(model, str) and model in APPLIANCE_MODELS:
+        return APPLIANCE_MODELS[model]
+    raise ValueError(f"unsupported appliance model: {model!r}")

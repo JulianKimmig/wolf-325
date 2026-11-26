@@ -77,7 +77,9 @@ class RuntimeConfigStore:
             merged = deep_merge(DEFAULT_CONFIG, self._supplied)
             validate_config(merged)
             merged["desired"] = normalize_settings(
-                merged.get("desired", {}), require_restorable=True
+                merged.get("desired", {}),
+                require_restorable=True,
+                max_airflow_m3h=float(merged["appliance"]["max_airflow_m3h"]),
             )
             self._data = merged
             return copy.deepcopy(merged)
@@ -107,6 +109,11 @@ class RuntimeConfigStore:
                 desired.pop(resolve_register_name(name), None)
             if patch:
                 desired.update(patch)
+            desired = normalize_settings(
+                desired,
+                require_restorable=True,
+                max_airflow_m3h=float(data["appliance"]["max_airflow_m3h"]),
+            )
             validate_cross_settings(desired)
             candidate = copy.deepcopy(data)
             candidate["desired"] = desired

@@ -121,17 +121,28 @@ def build_register_rows(
     return rows
 
 
-def _allowed_text(register: RegisterDef) -> str:
+def _allowed_text(
+    register: RegisterDef, *, max_airflow_m3h: float = 325
+) -> str:
     """Describe enum or numeric constraints in operator-facing language."""
     if register.enum:
         return "Allowed: " + ", ".join(register.enum.values())
     bounds: str
-    if register.minimum is not None and register.maximum is not None:
-        bounds = f"{register.minimum:g}–{register.maximum:g}"
+    maximum = register.maximum
+    if register.key in {
+        "flow_preset_holiday_m3h",
+        "flow_preset_low_m3h",
+        "flow_preset_normal_m3h",
+        "flow_preset_high_m3h",
+        "remote_airflow_m3h",
+    }:
+        maximum = max_airflow_m3h
+    if register.minimum is not None and maximum is not None:
+        bounds = f"{register.minimum:g}–{maximum:g}"
     elif register.minimum is not None:
         bounds = f"≥ {register.minimum:g}"
-    elif register.maximum is not None:
-        bounds = f"≤ {register.maximum:g}"
+    elif maximum is not None:
+        bounds = f"≤ {maximum:g}"
     else:
         return "Allowed: validated by the register codec"
     unit = f" {register.unit}" if register.unit else ""
@@ -150,6 +161,7 @@ def format_register_details(
     *,
     desired: Any = None,
     is_desired: bool = True,
+    max_airflow_m3h: float = 325,
 ) -> str:
     """Render complete register and runtime metadata for the detail panel.
 
@@ -183,7 +195,7 @@ def format_register_details(
         key,
         f"{table} register {register.address} · {register.count} word(s) · codec {register.codec}",
         f"Polling: {register.poll} · Unit: {register.unit or '—'}",
-        _allowed_text(register),
+        _allowed_text(register, max_airflow_m3h=max_airflow_m3h),
         f"Capabilities: {capabilities}",
         f"Current value: {_format_value(state.get('value'))}",
         f"Raw value: {_format_value(state.get('raw'))}",
@@ -196,7 +208,12 @@ def format_register_details(
     return "\n".join(lines)
 
 
-def build_editor_spec(register: RegisterDef, current: Any) -> EditorSpec:
+def build_editor_spec(
+    register: RegisterDef,
+    current: Any,
+    *,
+    max_airflow_m3h: float = 325,
+) -> EditorSpec:
     """Derive the write editor type and guard requirements from metadata.
 
     Args:
@@ -230,7 +247,9 @@ def build_editor_spec(register: RegisterDef, current: Any) -> EditorSpec:
         phrase = "APPLY DANGEROUS WRITE"
     elif register.one_shot:
         phrase = "EXECUTE ACTION"
-    help_text = _allowed_text(register)
+    help_text = _allowed_text(
+        register, max_airflow_m3h=max_airflow_m3h
+    )
     if register.dangerous:
         help_text += ". This write may disconnect or restart the device."
     return EditorSpec(
@@ -245,7 +264,12 @@ def build_editor_spec(register: RegisterDef, current: Any) -> EditorSpec:
     )
 
 
-def parse_editor_value(register: RegisterDef, text: str) -> Any:
+def parse_editor_value(
+    register: RegisterDef,
+    text: str,
+    *,
+    max_airflow_m3h: float = 325,
+) -> Any:
     """Validate editor text with the canonical register codec.
 
     Args:
@@ -259,7 +283,12 @@ def parse_editor_value(register: RegisterDef, text: str) -> Any:
         ValueError: If canonical register validation rejects the text.
     """
     try:
-        return register.normalize(text)
+        from .validation import normalize_settings
+
+        return normalize_settings(
+            {register.key: text},
+            max_airflow_m3h=max_airflow_m3h,
+        )[register.key]
     except RegisterError as exc:
         raise ValueError(str(exc)) from exc
 

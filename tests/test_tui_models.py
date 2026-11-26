@@ -128,3 +128,21 @@ def test_editor_value_rejects_out_of_range_input() -> None:
     """Invalid writes fail before reaching the external device."""
     with pytest.raises(ValueError, match="remote_airflow_m3h"):
         parse_editor_value(REGISTERS["remote_airflow_m3h"], "326")
+
+
+def test_editor_value_uses_configured_model_limit() -> None:
+    """The TUI accepts values within a larger configured model capacity."""
+    assert (
+        parse_editor_value(
+            REGISTERS["remote_airflow_m3h"],
+            "450",
+            max_airflow_m3h=450,
+        )
+        == 450
+    )
+    with pytest.raises(ValueError, match="maximum 450"):
+        parse_editor_value(
+            REGISTERS["remote_airflow_m3h"],
+            "451",
+            max_airflow_m3h=450,
+        )

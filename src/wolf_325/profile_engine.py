@@ -21,9 +21,10 @@ class ProfileRepository(ABC):
 
     VALID_NAME = re.compile(r"^[A-Za-z0-9_.-]+$")
 
-    def __init__(self) -> None:
+    def __init__(self, *, max_airflow_m3h: float = 325) -> None:
         """Initialize repository-level mutation serialization."""
         self._write_lock = asyncio.Lock()
+        self._max_airflow_m3h = max_airflow_m3h
 
     @abstractmethod
     async def list_profiles(self) -> list[str]:
@@ -72,7 +73,11 @@ class ProfileRepository(ABC):
         Returns:
             Canonical changed settings and inherited releases.
         """
-        normalized = normalize_settings(desired, require_restorable=True)
+        normalized = normalize_settings(
+            desired,
+            require_restorable=True,
+            max_airflow_m3h=self._max_airflow_m3h,
+        )
         validate_cross_settings(normalized)
         parent = await self.load(last_profile) if last_profile is not None else None
         inherited = parent.settings if parent is not None else {}
@@ -194,7 +199,11 @@ class ProfileRepository(ABC):
             settings.pop(key, None)
             if key not in unset:
                 unset.append(key)
-        own = normalize_settings(settings_raw, require_restorable=True)
+        own = normalize_settings(
+            settings_raw,
+            require_restorable=True,
+            max_airflow_m3h=self._max_airflow_m3h,
+        )
         for key in own:
             if key in unset:
                 unset.remove(key)

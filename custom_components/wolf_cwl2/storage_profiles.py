@@ -12,6 +12,8 @@ ProfileSaveCallback = Callable[[dict[str, dict[str, object]]], Awaitable[None]]
 def build_profile_repository(
     documents: Mapping[str, Mapping[str, object]],
     save_callback: ProfileSaveCallback,
+    *,
+    max_airflow_m3h: int = 325,
 ) -> MemoryProfileRepository:
     """Create an in-memory public repository backed by one Store callback.
 
@@ -22,7 +24,11 @@ def build_profile_repository(
     Returns:
         Public host-neutral profile repository.
     """
-    return MemoryProfileRepository(documents, save_callback=save_callback)
+    return MemoryProfileRepository(
+        documents,
+        max_airflow_m3h=max_airflow_m3h,
+        save_callback=save_callback,
+    )
 
 
 async def validate_profile_repository(repository: ProfileRepository) -> None:

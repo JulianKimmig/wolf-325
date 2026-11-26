@@ -19,13 +19,13 @@ ProfileSaveCallback = Callable[[dict[str, dict[str, Any]]], Awaitable[None]]
 class ProfileLoader(ProfileRepository):
     """Persist recursively composable profiles in one filesystem directory."""
 
-    def __init__(self, directory: Path) -> None:
+    def __init__(self, directory: Path, *, max_airflow_m3h: float = 325) -> None:
         """Initialize a loader rooted at the configured profile directory.
 
         Args:
             directory: Directory containing portable JSON profile documents.
         """
-        super().__init__()
+        super().__init__(max_airflow_m3h=max_airflow_m3h)
         self.directory = directory
 
     async def list_profiles(self) -> list[str]:
@@ -76,6 +76,7 @@ class MemoryProfileRepository(ProfileRepository):
         self,
         documents: Mapping[str, Mapping[str, Any]] | None = None,
         *,
+        max_airflow_m3h: float = 325,
         save_callback: ProfileSaveCallback | None = None,
     ) -> None:
         """Initialize an isolated portable document catalogue.
@@ -84,7 +85,7 @@ class MemoryProfileRepository(ProfileRepository):
             documents: Initial profile documents keyed by profile identifier.
             save_callback: Awaited host persistence callback after mutations.
         """
-        super().__init__()
+        super().__init__(max_airflow_m3h=max_airflow_m3h)
         self._documents = copy.deepcopy(dict(documents or {}))
         self._save_callback = save_callback
 

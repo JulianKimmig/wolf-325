@@ -10,12 +10,14 @@ from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.helpers import config_validation as cv
 
 from .const import (
+    APPLIANCE_MODELS,
     AUTHORITY_MODES,
     CONF_ADDRESS_OFFSET,
     CONF_ALLOW_APPLIANCE_RESET,
     CONF_AUTHORITY,
     CONF_DEVICE_ID,
     CONF_FAST_INTERVAL,
+    CONF_MODEL,
     CONF_READ_EXTENSION,
     CONF_READ_HOLDING,
     CONF_RECONCILE_INTERVAL,
@@ -23,6 +25,7 @@ from .const import (
     CONF_STATIC_INTERVAL,
     CONF_TRANSPORT,
     DEFAULT_OPTIONS,
+    DEFAULT_MODEL,
     MIN_INTERVAL_SECONDS,
 )
 
@@ -49,6 +52,9 @@ def connection_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
             vol.Required(
                 CONF_HOST, default=values.get(CONF_HOST, "")
             ): vol.All(cv.string, vol.Length(min=1)),
+            vol.Required(
+                CONF_MODEL, default=values.get(CONF_MODEL, DEFAULT_MODEL)
+            ): vol.In(tuple(APPLIANCE_MODELS)),
             vol.Required(CONF_PORT, default=values.get(CONF_PORT, 502)): vol.All(
                 vol.Coerce(int), vol.Range(min=1, max=65535)
             ),

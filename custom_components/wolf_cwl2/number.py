@@ -10,6 +10,7 @@ from wolf_325 import REGISTERS
 
 from .entity import WolfCWL2Entity
 from .entity_catalogue import ENTITY_SPECS, EntitySpec
+from .const import CONF_MODEL, max_airflow_for_model
 from .mutations import async_set_setting
 from .runtime import WolfCWL2ConfigEntry
 
@@ -54,7 +55,16 @@ class WolfCWL2Number(WolfCWL2Entity, NumberEntity):
         assert register.maximum is not None
         candidates = (register.minimum, *register.extra_values)
         self._attr_native_min_value = min(candidates)
-        self._attr_native_max_value = register.maximum
+        maximum = register.maximum
+        if spec.key in {
+            "flow_preset_holiday_m3h",
+            "flow_preset_low_m3h",
+            "flow_preset_normal_m3h",
+            "flow_preset_high_m3h",
+            "remote_airflow_m3h",
+        }:
+            maximum = max_airflow_for_model(entry.data.get(CONF_MODEL))
+        self._attr_native_max_value = maximum
         self._attr_native_step = register.step or 1
         self._attr_native_unit_of_measurement = spec.native_unit
 

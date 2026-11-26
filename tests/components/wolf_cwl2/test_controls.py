@@ -7,6 +7,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from wolf_325 import RegisterError
 
 from custom_components.wolf_cwl2.const import DOMAIN
 from custom_components.wolf_cwl2.entity_catalogue import ENTITY_SPECS
@@ -17,7 +18,7 @@ from .test_config_flow import CONNECTION, DEFAULT_OPTIONS
 pytestmark = pytest.mark.usefixtures("enable_custom_integrations")
 
 
-def _entry(authority: str) -> MockConfigEntry:
+def _entry(authority: str, model: str = "CWL-2-325") -> MockConfigEntry:
     """Build one entry in the requested authority mode.
 
     Args:
@@ -30,7 +31,7 @@ def _entry(authority: str) -> MockConfigEntry:
         domain=DOMAIN,
         title="Controlled ventilation",
         unique_id="123456789012",
-        data=CONNECTION,
+        data={**CONNECTION, "model": model},
         options={**DEFAULT_OPTIONS, "authority": authority},
     )
 
@@ -175,6 +176,66 @@ async def test_temporary_number_select_and_switch_write_confirmed_state_only(
     assert hass.states.get(_entity_id(hass, "number", "remote_airflow_m3h")).state == "200"
     assert hass.states.get(_entity_id(hass, "select", "remote_control_mode")).state == "airflow"
     assert hass.states.get(_entity_id(hass, "switch", "remote_standby")).state == "on"
+
+
+@pytest.mark.parametrize(
+    ("model", "maximum"),
+    [
+        ("CWL-2-225", 225),
+        ("CWL-2-325", 325),
+        ("CWL-2-400", 400),
+        ("CWL-2-450", 450),
+        ("CWL-2-600", 600),
+    ],
+)
+async def test_model_sets_airflow_entity_limit_and_device_model(
+    hass: HomeAssistant,
+    fake_gateway: FakeGateway,
+    model: str,
+    maximum: int,
+) -> None:
+    """Expose and identify each model with its configured airflow limit."""
+    entry = _entry("monitor_only", model)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    entity_id = _entity_id(hass, "number", "remote_airflow_m3h")
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert float(state.attributes["max"]) == maximum
+    assert float(
+        hass.states.get(
+            _entity_id(hass, "number", "flow_preset_high_m3h")
+        ).attributes["max"]
+    ) == maximum
+
+
+async def test_selected_model_limit_is_enforced_by_client(
+    hass: HomeAssistant,
+    fake_gateway: FakeGateway,
+) -> None:
+    """Accept a 400er target while retaining an enforced 400 m3/h ceiling."""
+    entry = _entry("temporary", "CWL-2-400")
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {
+            "entity_id": _entity_id(hass, "number", "remote_airflow_m3h"),
+            "value": 400,
+        },
+        blocking=True,
+    )
+    assert fake_gateway.holding_words[8002] == 400
+
+    with pytest.raises(RegisterError, match="maximum 400"):
+        await entry.runtime_data.controller.set_setting(
+            "remote_airflow_m3h", 401, persist=False
+        )
 
 
 async def test_persistent_control_commits_desired_before_verified_write(
