@@ -9,6 +9,17 @@ from .catalogue import REGISTERS, resolve_register_name
 from .errors import RegisterError, ValidationError
 from .types import JSONScalar
 
+DEFAULT_MAX_AIRFLOW_M3H: float = 325
+AIRFLOW_SETTING_KEYS = frozenset(
+    {
+        "flow_preset_holiday_m3h",
+        "flow_preset_low_m3h",
+        "flow_preset_normal_m3h",
+        "flow_preset_high_m3h",
+        "remote_airflow_m3h",
+    }
+)
+
 RELATIONAL_SETTING_GROUPS: tuple[tuple[str, ...], ...] = (
     (
         "flow_preset_holiday_m3h",
@@ -107,6 +118,7 @@ def normalize_settings(
     *,
     require_restorable: bool = False,
     allow_dangerous: bool = False,
+    max_airflow_m3h: float = DEFAULT_MAX_AIRFLOW_M3H,
 ) -> dict[str, JSONScalar]:
     """Resolve, authorize, normalize, and cross-validate named setting values."""
     normalized: dict[str, JSONScalar] = {}
@@ -126,6 +138,16 @@ def normalize_settings(
             )
         if require_restorable and not register.restorable:
             raise RegisterError(f"{key} must not be restored automatically")
-        normalized[key] = register.normalize(value)
+        normalized_value = register.normalize(value)
+        if (
+            key in AIRFLOW_SETTING_KEYS
+            and isinstance(normalized_value, (int, float))
+            and not isinstance(normalized_value, bool)
+            and normalized_value > max_airflow_m3h
+        ):
+            raise ValidationError(
+                f"{key}: {normalized_value:g} is above maximum {max_airflow_m3h:g}"
+            )
+        normalized[key] = normalized_value
     validate_cross_settings(normalized)
     return normalized

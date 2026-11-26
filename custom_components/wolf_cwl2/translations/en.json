@@ -7,6 +7,7 @@
         "description": "Enter the Modbus gateway details for one ventilation appliance.",
         "data": {
           "host": "Host",
+          "model": "Appliance model",
           "port": "Port",
           "device_id": "Device ID",
           "transport": "Transport",
@@ -18,6 +19,7 @@
         "description": "The new endpoint must report the same appliance serial number.",
         "data": {
           "host": "Host",
+          "model": "Appliance model",
           "port": "Port",
           "device_id": "Device ID",
           "transport": "Transport",

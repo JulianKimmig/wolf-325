@@ -42,7 +42,13 @@ class TuiOperationsMixin:
         state = self._snapshot.get("values", {}).get(key, {})
         current = state.get("value") if isinstance(state, dict) else None
         editor = RegisterEditor(
-            REGISTERS[key], build_editor_spec(REGISTERS[key], current)
+            REGISTERS[key],
+            build_editor_spec(
+                REGISTERS[key],
+                current,
+                max_airflow_m3h=self._max_airflow_m3h,
+            ),
+            max_airflow_m3h=self._max_airflow_m3h,
         )
         self.push_screen(editor, lambda request: self._accept_write(key, request))
 

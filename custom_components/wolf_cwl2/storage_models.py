@@ -40,7 +40,9 @@ def new_store_payload() -> dict[str, Any]:
     }
 
 
-def validate_store_payload(raw: Mapping[str, Any]) -> dict[str, Any]:
+def validate_store_payload(
+    raw: Mapping[str, Any], *, max_airflow_m3h: int = 325
+) -> dict[str, Any]:
     """Validate and isolate one loaded Store payload.
 
     Args:
@@ -65,7 +67,11 @@ def validate_store_payload(raw: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(desired_raw, Mapping):
         raise StorePayloadError("store desired must be an object")
     try:
-        desired = normalize_settings(desired_raw, require_restorable=True)
+        desired = normalize_settings(
+            desired_raw,
+            require_restorable=True,
+            max_airflow_m3h=max_airflow_m3h,
+        )
     except Exception as exc:
         raise StorePayloadError(f"invalid stored desired state: {exc}") from exc
     profiles_raw = raw.get("profiles")

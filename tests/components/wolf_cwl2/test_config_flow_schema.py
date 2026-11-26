@@ -18,6 +18,7 @@ pytestmark = pytest.mark.usefixtures("enable_custom_integrations")
 
 CONNECTION = {
     "host": "test-gateway",
+    "model": "CWL-2-325",
     "port": 502,
     "device_id": 20,
     "transport": "modbus_tcp",
@@ -38,6 +39,7 @@ def test_connection_form_schema_is_frontend_serializable() -> None:
 
     assert [field["name"] for field in fields] == [
         "host",
+        "model",
         "port",
         "device_id",
         "transport",

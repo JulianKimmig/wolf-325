@@ -8,11 +8,13 @@ import importlib.metadata
 import threading
 from pathlib import Path
 
+import pytest
 from packaging.requirements import Requirement
 
 from wolf_325 import (
     DEFAULT_CONFIG,
     MemoryProfileRepository,
+    RegisterError,
     RuntimeConfigStore,
     WolfCWL2,
     atomic_json_write,
@@ -69,6 +71,38 @@ async def test_runtime_store_merges_and_canonicalizes_without_a_file() -> None:
     assert store.resolve_relative_path("anything.json") is None
 
 
+@pytest.mark.parametrize("maximum", [225, 325, 400, 450, 600])
+async def test_runtime_store_honors_configured_airflow_limit(maximum: int) -> None:
+    """Canonicalize desired airflow only up to the configured model capacity."""
+    config = copy.deepcopy(DEFAULT_CONFIG)
+    config["appliance"]["max_airflow_m3h"] = maximum
+    config["desired"] = {"remote_airflow_m3h": maximum}
+
+    loaded = await RuntimeConfigStore(config).load()
+
+    assert loaded["desired"]["remote_airflow_m3h"] == maximum
+
+    config["desired"] = {"remote_airflow_m3h": maximum + 1}
+    with pytest.raises(RegisterError, match="above maximum"):
+        await RuntimeConfigStore(config).load()
+
+
+async def test_memory_profiles_honor_configured_airflow_limit() -> None:
+    """Resolve profiles above 325 when the configured model supports them."""
+    repository = MemoryProfileRepository(
+        {
+            "high-flow": {
+                "settings": {"remote_airflow_m3h": 450},
+            }
+        },
+        max_airflow_m3h=450,
+    )
+
+    resolved = await repository.load("high-flow")
+
+    assert resolved.settings["remote_airflow_m3h"] == 450
+
+
 async def test_runtime_store_awaits_persistence_before_returning() -> None:
     """A host callback durably observes desired state before update completes."""
     saved: list[dict[str, object]] = []
@@ -88,6 +122,17 @@ async def test_runtime_store_awaits_persistence_before_returning() -> None:
     assert desired == {"remote_airflow_m3h": 170}
     assert saved[-1]["desired"] == desired
     assert saved[-1]["last_profile"] == "day"
+
+
+async def test_runtime_store_rejects_direct_update_above_model_limit() -> None:
+    """Persisted desired state cannot bypass the configured model capacity."""
+    config = copy.deepcopy(DEFAULT_CONFIG)
+    config["appliance"]["max_airflow_m3h"] = 400
+    store = RuntimeConfigStore(config)
+    await store.load()
+
+    with pytest.raises(RegisterError, match="above maximum 400"):
+        await store.update_desired({"remote_airflow_m3h": 401})
 
 
 async def test_memory_profiles_share_file_profile_semantics() -> None:

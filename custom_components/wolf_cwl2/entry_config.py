@@ -11,12 +11,15 @@ from wolf_325 import DEFAULT_CONFIG
 from .const import (
     CONF_AUTHORITY,
     CONF_FAST_INTERVAL,
+    CONF_MODEL,
     CONF_READ_EXTENSION,
     CONF_READ_HOLDING,
     CONF_RECONCILE_INTERVAL,
     CONF_SLOW_INTERVAL,
     CONF_STATIC_INTERVAL,
     DEFAULT_OPTIONS,
+    DEFAULT_MODEL,
+    max_airflow_for_model,
 )
 from .storage import EntryStore
 
@@ -37,8 +40,11 @@ def build_client_config(
         Complete host-neutral public client configuration.
     """
     policy = {**DEFAULT_OPTIONS, **dict(options)}
+    connection_values = dict(connection)
+    model = str(connection_values.pop(CONF_MODEL, DEFAULT_MODEL))
     config = copy.deepcopy(DEFAULT_CONFIG)
-    config["connection"].update(copy.deepcopy(dict(connection)))
+    config["connection"].update(copy.deepcopy(connection_values))
+    config["appliance"]["max_airflow_m3h"] = max_airflow_for_model(model)
     config["polling"].update(
         {
             CONF_FAST_INTERVAL: policy[CONF_FAST_INTERVAL],

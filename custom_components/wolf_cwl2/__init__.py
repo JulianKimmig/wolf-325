@@ -13,7 +13,15 @@ from homeassistant.helpers.typing import ConfigType
 
 from wolf_325 import WolfCWL2
 
-from .const import CONF_ALLOW_APPLIANCE_RESET, CONF_AUTHORITY, DEFAULT_OPTIONS, DOMAIN
+from .const import (
+    CONF_ALLOW_APPLIANCE_RESET,
+    CONF_AUTHORITY,
+    CONF_MODEL,
+    DEFAULT_MODEL,
+    DEFAULT_OPTIONS,
+    DOMAIN,
+    max_airflow_for_model,
+)
 from .coordinator import WolfCWL2Coordinator
 from .entry_config import build_client_config
 from .runtime import EntryRuntime, WolfCWL2ConfigEntry
@@ -59,7 +67,8 @@ async def async_setup_entry(
     Returns:
         ``True`` after identity verification and platform forwarding.
     """
-    store = EntryStore(hass, entry.entry_id)
+    max_airflow = max_airflow_for_model(entry.data.get(CONF_MODEL))
+    store = EntryStore(hass, entry.entry_id, max_airflow_m3h=max_airflow)
     try:
         await store.async_load()
     except EntryStoreError as exc:
@@ -129,15 +138,18 @@ async def async_migrate_entry(
     Returns:
         ``True`` after a supported migration, otherwise ``False``.
     """
-    if entry.version != 1 or entry.minor_version != 1:
+    if entry.version != 1 or entry.minor_version not in (1, 2):
         return False
     options = dict(entry.options)
-    options[CONF_ALLOW_APPLIANCE_RESET] = False
+    options.setdefault(CONF_ALLOW_APPLIANCE_RESET, False)
+    data = dict(entry.data)
+    data.setdefault(CONF_MODEL, DEFAULT_MODEL)
     hass.config_entries.async_update_entry(
         entry,
+        data=data,
         options=options,
         version=1,
-        minor_version=2,
+        minor_version=3,
     )
     return True
 
@@ -180,7 +192,11 @@ async def async_remove_entry(
     Returns:
         None after targeted Store removal.
     """
-    store = EntryStore(hass, entry.entry_id)
+    store = EntryStore(
+        hass,
+        entry.entry_id,
+        max_airflow_m3h=max_airflow_for_model(entry.data.get(CONF_MODEL)),
+    )
     await store.async_remove()
 
 

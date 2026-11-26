@@ -228,7 +228,11 @@ class WolfCWL2App(TuiOperationsMixin, App[None]):
         desired_value = desired.get(key) if owned else None
         details.update(
             format_register_details(
-                key, state if isinstance(state, dict) else {}, desired=desired_value, is_desired=owned
+                key,
+                state if isinstance(state, dict) else {},
+                desired=desired_value,
+                is_desired=owned,
+                max_airflow_m3h=self._max_airflow_m3h,
             )
         )
         edit.disabled = self.read_only or self._busy or not REGISTERS[key].writable
@@ -247,6 +251,14 @@ class WolfCWL2App(TuiOperationsMixin, App[None]):
             f"{view.title}\n{view.description}"
         )
         self._render_table()
+
+    @property
+    def _max_airflow_m3h(self) -> float:
+        """Return the airflow capacity from the loaded controller config."""
+        config = self.service.controller.config
+        if config is None:
+            return 325
+        return float(config["appliance"]["max_airflow_m3h"])
 
     async def on_tree_node_selected(self, event: Tree.NodeSelected[str]) -> None:
         """Open a view when an operator activates a populated tree node."""

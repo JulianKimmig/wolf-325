@@ -20,6 +20,9 @@ from .validation import normalize_settings, validate_cross_settings
 
 DEFAULT_CONFIG: Final[dict[str, Any]] = {
     "schema_version": 1,
+    "appliance": {
+        "max_airflow_m3h": 325,
+    },
     "connection": {
         "host": "192.168.1.200",
         "port": 502,
@@ -143,7 +146,9 @@ class ConfigStore:
             merged = deep_merge(DEFAULT_CONFIG, supplied)
             self._validate(merged)
             merged["desired"] = normalize_settings(
-                merged.get("desired", {}), require_restorable=True
+                merged.get("desired", {}),
+                require_restorable=True,
+                max_airflow_m3h=float(merged["appliance"]["max_airflow_m3h"]),
             )
             self._data = merged
             return copy.deepcopy(merged)
@@ -174,6 +179,13 @@ class ConfigStore:
                 current.pop(resolve_register_name(name), None)
             if patch:
                 current.update(patch)
+            current = normalize_settings(
+                current,
+                require_restorable=True,
+                max_airflow_m3h=float(
+                    self._data["appliance"]["max_airflow_m3h"]
+                ),
+            )
             validate_cross_settings(current)
             self._data["desired"] = current
             self._data["last_profile"] = last_profile
@@ -197,8 +209,15 @@ class ConfigStore:
         connection = config.get("connection")
         polling = config.get("polling")
         persistence = config.get("persistence")
-        if not all(isinstance(value, Mapping) for value in (connection, polling, persistence)):
-            raise ConfigError("connection, polling, and persistence must be JSON objects")
+        appliance = config.get("appliance")
+        if not all(
+            isinstance(value, Mapping)
+            for value in (appliance, connection, polling, persistence)
+        ):
+            raise ConfigError(
+                "appliance, connection, polling, and persistence must be JSON objects"
+            )
+        assert isinstance(appliance, Mapping)
         assert isinstance(connection, Mapping)
         assert isinstance(polling, Mapping)
         assert isinstance(persistence, Mapping)
@@ -212,6 +231,8 @@ class ConfigStore:
             raise ConfigError("connection.address_offset must be 0 (normal) or -1")
         if connection.get("transport") not in {"modbus_tcp", "rtu_over_tcp"}:
             raise ConfigError("connection.transport must be 'modbus_tcp' or 'rtu_over_tcp'")
+        if not 225 <= float(appliance.get("max_airflow_m3h", 0)) <= 600:
+            raise ConfigError("appliance.max_airflow_m3h must be 225..600")
         for key in (
             "fast_interval_seconds", "slow_interval_seconds",
             "static_interval_seconds", "reconcile_interval_seconds",

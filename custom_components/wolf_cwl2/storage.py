@@ -28,7 +28,13 @@ STORE_KEY_PREFIX: Final = f"{DOMAIN}."
 class EntryStore:
     """Own one config entry's desired, lineage, and profile transaction state."""
 
-    def __init__(self, hass: HomeAssistant, entry_id: str) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry_id: str,
+        *,
+        max_airflow_m3h: int = 325,
+    ) -> None:
         """Initialize an unloaded private Store owner.
 
         Args:
@@ -37,6 +43,7 @@ class EntryStore:
         """
         self.hass = hass
         self.storage_key = f"{STORE_KEY_PREFIX}{entry_id}"
+        self.max_airflow_m3h = max_airflow_m3h
         self._store = MigratingEntryDataStore(hass, self.storage_key)
         self._lock = asyncio.Lock()
         self._payload: dict[str, Any] | None = None
@@ -116,10 +123,14 @@ class EntryStore:
                 candidate = (
                     new_store_payload()
                     if raw is None
-                    else validate_store_payload(raw)
+                    else validate_store_payload(
+                        raw, max_airflow_m3h=self.max_airflow_m3h
+                    )
                 )
                 repository = build_profile_repository(
-                    candidate["profiles"], self._save_profiles
+                    candidate["profiles"],
+                    self._save_profiles,
+                    max_airflow_m3h=self.max_airflow_m3h,
                 )
                 await validate_profile_repository(repository)
             except UnsupportedStoreSchemaError:
@@ -154,7 +165,11 @@ class EntryStore:
         desired_raw = config.get("desired", {})
         if not isinstance(desired_raw, Mapping):
             raise EntryStoreError("runtime desired state must be an object")
-        desired = normalize_settings(desired_raw, require_restorable=True)
+        desired = normalize_settings(
+            desired_raw,
+            require_restorable=True,
+            max_airflow_m3h=self.max_airflow_m3h,
+        )
         last_profile = config.get("last_profile")
         if last_profile is not None and not isinstance(last_profile, str):
             raise EntryStoreError("runtime last_profile must be a string or null")

@@ -7,15 +7,15 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.wolf_cwl2 import async_migrate_entry
 from custom_components.wolf_cwl2.config_flow import WolfCWL2ConfigFlow
-from custom_components.wolf_cwl2.const import DOMAIN
+from custom_components.wolf_cwl2.const import DEFAULT_MODEL, DOMAIN
 
 from .test_config_flow import CONNECTION, DEFAULT_OPTIONS
 
 
-async def test_minor_two_migration_adds_reset_opt_in_without_other_changes(
+async def test_minor_three_migration_adds_model_and_reset_opt_in(
     hass: HomeAssistant,
 ) -> None:
-    """Migrate the actual v1.1 option document to the v1.2 contract.
+    """Migrate the actual v1.1 entry to the current model-aware contract.
 
     Args:
         hass: Home Assistant test instance.
@@ -31,7 +31,7 @@ async def test_minor_two_migration_adds_reset_opt_in_without_other_changes(
     entry = MockConfigEntry(
         domain=DOMAIN,
         unique_id="123456789012",
-        data=CONNECTION,
+        data={key: value for key, value in CONNECTION.items() if key != "model"},
         options=legacy_options,
         version=1,
         minor_version=1,
@@ -40,9 +40,29 @@ async def test_minor_two_migration_adds_reset_opt_in_without_other_changes(
 
     assert await async_migrate_entry(hass, entry)
     assert entry.version == WolfCWL2ConfigFlow.VERSION == 1
-    assert entry.minor_version == WolfCWL2ConfigFlow.MINOR_VERSION == 2
-    assert entry.data == CONNECTION
+    assert entry.minor_version == WolfCWL2ConfigFlow.MINOR_VERSION == 3
+    assert entry.data == {**CONNECTION, "model": DEFAULT_MODEL}
     assert entry.options == DEFAULT_OPTIONS
+
+
+async def test_minor_two_migration_preserves_existing_options(
+    hass: HomeAssistant,
+) -> None:
+    """Add the model without disabling an explicitly enabled reset option."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="123456789012",
+        data={key: value for key, value in CONNECTION.items() if key != "model"},
+        options={**DEFAULT_OPTIONS, "allow_appliance_reset": True},
+        version=1,
+        minor_version=2,
+    )
+    entry.add_to_hass(hass)
+
+    assert await async_migrate_entry(hass, entry)
+    assert entry.minor_version == 3
+    assert entry.data["model"] == DEFAULT_MODEL
+    assert entry.options["allow_appliance_reset"] is True
 
 
 async def test_migration_rejects_unknown_forward_entry_schema(

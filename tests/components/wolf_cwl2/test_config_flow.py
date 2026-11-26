@@ -18,6 +18,7 @@ pytestmark = pytest.mark.usefixtures("enable_custom_integrations")
 
 CONNECTION = {
     "host": "test-gateway",
+    "model": "CWL-2-325",
     "port": 502,
     "device_id": 20,
     "transport": "modbus_tcp",
@@ -87,6 +88,7 @@ async def test_user_flow_creates_serial_backed_entry(
     result = await _start_user_flow(hass)
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "user"
+    assert "model" in result["data_schema"].schema
 
     result = await _submit_connection(hass, result["flow_id"])
     assert result["type"] is FlowResultType.CREATE_ENTRY
@@ -206,6 +208,22 @@ async def test_reconfigure_updates_only_matching_serial(
     assert mismatch["type"] is FlowResultType.ABORT
     assert mismatch["reason"] == "reconfigure_mismatch"
     assert entry.data == updated
+
+
+async def test_user_flow_stores_selected_model(
+    hass: HomeAssistant,
+    fake_gateway: FakeGateway,
+) -> None:
+    """Persist the selected appliance capacity with the connection."""
+    result = await _start_user_flow(hass)
+    result = await _submit_connection(
+        hass,
+        result["flow_id"],
+        {**CONNECTION, "model": "CWL-2-450"},
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"]["model"] == "CWL-2-450"
 
 
 async def test_options_validate_modes_intervals_and_reload_once(
