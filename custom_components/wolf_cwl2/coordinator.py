@@ -123,6 +123,13 @@ class WolfCWL2Coordinator(DataUpdateCoordinator[CoordinatorData]):
             and self.store.desired_active
             and now >= self._next_reconcile
         )
+        LOGGER.debug(
+            "Starting coordinator update: due_tiers=%s reconcile_due=%s "
+            "previous_success=%s",
+            due,
+            reconcile_due,
+            self.last_update_success,
+        )
         if not due and not reconcile_due and self.data is not None:
             return self.data
         reconcile_errors: tuple[str, ...] = ()
@@ -161,7 +168,30 @@ class WolfCWL2Coordinator(DataUpdateCoordinator[CoordinatorData]):
                     if not reconcile_errors:
                         self._reconciled_generation = generation
         except CommunicationError as exc:
-            raise UpdateFailed("configured appliance unavailable") from exc
+            snapshot = self.controller.snapshot()
+            LOGGER.warning(
+                "Coordinator Modbus update failed: due_tiers=%s reconcile_due=%s "
+                "connected=%s connection_generation=%s transport_error=%s "
+                "failure=%s",
+                due,
+                reconcile_due,
+                snapshot["connected"],
+                snapshot["connection_generation"],
+                snapshot["last_connection_error"],
+                type(exc).__name__,
+            )
+            raise UpdateFailed(
+                "configured appliance unavailable: "
+                f"tiers={','.join(due) or 'none'}, "
+                f"transport_error={snapshot['last_connection_error'] or 'none'}"
+            ) from exc
+        if not self.last_update_success and due:
+            LOGGER.info(
+                "Coordinator Modbus communication restored: due_tiers=%s "
+                "connection_generation=%s",
+                due,
+                self.controller.snapshot()["connection_generation"],
+            )
         for tier in due:
             self._last_success[tier] = now
             self._next_due[tier] = now + self._intervals[tier]

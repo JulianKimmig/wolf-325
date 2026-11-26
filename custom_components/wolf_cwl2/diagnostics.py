@@ -85,6 +85,8 @@ async def async_get_config_entry_diagnostics(
         "runtime": {
             "connected": runtime.controller.connected,
             "connection_generation": snapshot["connection_generation"],
+            "last_connection_error": snapshot["last_connection_error"],
+            "last_poll_at": snapshot["last_poll_at"],
             "coordinator_last_update_success": (
                 runtime.coordinator.last_update_success
             ),

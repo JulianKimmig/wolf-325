@@ -67,7 +67,9 @@ async def test_connect_constructs_modbus_client_from_configuration(
 
 
 async def test_connect_uses_rtu_framer_and_reports_connection_refusal(
-    config_path: Any, monkeypatch: pytest.MonkeyPatch
+    config_path: Any,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """RTU-over-TCP selects RTU framing and false connect results fail clearly."""
     import wolf_325.transport as transport_module
@@ -76,12 +78,17 @@ async def test_connect_uses_rtu_framer_and_reports_connection_refusal(
     await instance.load_config()
     assert instance.config is not None
     instance.config["connection"]["transport"] = "rtu_over_tcp"
+    instance.config["connection"]["request_retries"] = 2
+    caplog.set_level(logging.DEBUG, logger="wolf_325")
     factory = ClientFactory(FakeClient(), connect_result=False)
     monkeypatch.setattr(transport_module, "AsyncModbusTcpClient", factory)
     with pytest.raises(CommunicationError, match="configured gateway") as failure:
         await instance.refresh("filter_status")
     assert "fake-gateway" not in str(failure.value)
+    assert len(factory.calls) == 3
     assert factory.calls[0][1]["framer"] == FramerType.RTU
+    assert "attempt=3/3" in caplog.text
+    assert "error=CommunicationError" in caplog.text
 
 
 async def test_negative_wire_address_fails_before_external_io(config_path: Any) -> None:
@@ -112,6 +119,7 @@ async def test_protocol_exception_is_remote_error_without_disconnect(
 
 async def test_transport_failure_does_not_chain_sensitive_gateway_exception(
     controller: tuple[WolfCWL2, FakeClient],
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Keep raw external exception text out of host-visible traceback chains.
 
@@ -123,6 +131,7 @@ async def test_transport_failure_does_not_chain_sensitive_gateway_exception(
     """
     instance, client = controller
     sentinel = "sensitive external gateway exception"
+    caplog.set_level(logging.INFO, logger="wolf_325")
 
     async def failed(*_: Any, **__: Any) -> FakeResponse:
         """Raise one external exception containing protected text."""
@@ -133,6 +142,9 @@ async def test_transport_failure_does_not_chain_sensitive_gateway_exception(
         await instance.refresh("filter_status")
     assert sentinel not in str(failure.value)
     assert failure.value.__cause__ is None
+    assert sentinel not in caplog.text
+    assert "error=OSError" in caplog.text
+    assert "Modbus request exhausted retries" in caplog.text
 
 
 async def test_short_read_response_is_rejected(

@@ -100,6 +100,12 @@ async def test_diagnostics_and_logs_exclude_every_sensitive_sentinel(
         assert sentinel not in caplog.text
     assert diagnostics["policy"]["authority"] == "persistent"
     assert diagnostics["runtime"]["connection_generation"] >= 1
+    assert diagnostics["runtime"]["last_connection_error"] == "OSError"
+    assert set(diagnostics["runtime"]["last_poll_at"]) == {
+        "fast",
+        "slow",
+        "static",
+    }
     assert diagnostics["availability"]["available_count"] > 0
     assert diagnostics["availability"]["error_count"] >= 0
     assert set(diagnostics["tiers"]) == {"fast", "slow", "static"}
