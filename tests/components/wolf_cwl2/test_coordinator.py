@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import logging
+
+import pytest
 
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -36,6 +39,7 @@ class FakeClock:
 async def test_coordinator_batches_due_tiers_skips_bursts_and_recovers(
     hass: HomeAssistant,
     fake_gateway: FakeGateway,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Poll due tiers once, expose freshness, and recover after transport loss.
 
@@ -67,6 +71,7 @@ async def test_coordinator_batches_due_tiers_skips_bursts_and_recovers(
         options=DEFAULT_OPTIONS,
     )
     clock = FakeClock()
+    caplog.set_level(logging.DEBUG)
     store = EntryStore(hass, entry.entry_id)
     await store.async_load()
     await store.async_transition_authority("monitor_only")
@@ -107,12 +112,15 @@ async def test_coordinator_batches_due_tiers_skips_bursts_and_recovers(
         await coordinator.async_refresh()
         assert not coordinator.last_update_success
         assert not controller.connected
+        assert "due_tiers=('fast',)" in caplog.text
+        assert "transport_error=OSError" in caplog.text
 
         fake_gateway.fails_reads = False
         clock.now = 70
         await coordinator.async_refresh()
         assert coordinator.last_update_success
         assert controller.connected
+        assert "Coordinator Modbus communication restored" in caplog.text
 
         clock.now = 181
         assert not coordinator.tier_is_fresh("slow")

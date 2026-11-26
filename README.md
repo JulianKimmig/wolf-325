@@ -181,6 +181,22 @@ values, desired/profile content, and exception text. Persistent Repairs are
 created only for changed identity, invalid Store data, or a newer unsupported
 Store schema—not for an ordinary disconnect.
 
+For a communication trace, enable debug logging in Home Assistant:
+
+```yaml
+logger:
+  logs:
+    wolf_325: debug
+    custom_components.wolf_cwl2.coordinator: debug
+```
+
+The trace reports Modbus operation, documented register address/range, tier,
+attempt counts, safe error category/error number, connection generation, and
+recovery. It deliberately does not log the gateway endpoint, appliance serial,
+live values, raw registers, or external exception text. Share the relevant log
+section together with the downloaded diagnostics when reporting intermittent
+`unavailable` entities.
+
 Reconfigure an entry to move its gateway while retaining serial identity and
 Recorder history. Reload drains in-flight work and replaces only that entry's
 runtime. Removing an entry closes its transport and permanently deletes only

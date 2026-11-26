@@ -71,6 +71,8 @@ class PollingMixin:
         """Read every enabled contiguous block for one polling tier."""
         if self.config is None:
             await self.load_config()
+        started = asyncio.get_running_loop().time()
+        LOGGER.debug("Starting %s Modbus poll tier", tier)
         changed = False
         for block in (item for item in READ_BLOCKS if item.tier == tier):
             if block.table == "holding" and not self.config["polling"]["read_holding_registers"]:
@@ -98,6 +100,12 @@ class PollingMixin:
                 await self._mark_block_unavailable(block, "connection unavailable")
                 raise
         self._last_poll_at[tier] = datetime.now(UTC).isoformat()
+        LOGGER.debug(
+            "Completed %s Modbus poll tier: changed=%s duration_seconds=%.3f",
+            tier,
+            changed,
+            asyncio.get_running_loop().time() - started,
+        )
         if changed:
             await self._write_state_file()
 
